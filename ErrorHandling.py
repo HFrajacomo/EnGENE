@@ -12,3 +12,6 @@ def error(ecode, message, quit=True):
 
 def warning(wcode, message):
 	print(f'{Fore.YELLOW}Warning #{wcode}: {message}')
+
+def progress(message):
+	print(f'{Fore.GREEN}{message}')
