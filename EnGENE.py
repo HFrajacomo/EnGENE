@@ -12,11 +12,9 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import precision_score, recall_score
 
 class Model:
-	models = []
+	models = {}
 	# Takes filename to build DataFrame
 	def __init__(self, modelname, filename):
-		Model.models.append(self)
-
 		# Dataset Atributes
 		self.modelname = modelname
 		self.filename = filename
@@ -38,6 +36,8 @@ class Model:
 
 		# Top SNPs in model
 		self.top_snps = []
+
+		Model.models[modelname] = self
 
 	# Set target column for the predictor
 	def set_target_column(self, indicator):
@@ -114,20 +114,29 @@ class Model:
 		cols.append(self.target_column)
 		self.data = self.data.reindex(columns=cols)
 
-		self.feature_range[1] = len(cols)-(1+self.feature_range[0])
+		self.feature_range[1] = len(cols)-2
 
 	# Drops unnecessary columns
 	def destroy_column(self, column):
+		dropped_names = []
+
 		if(type(column) == int):
+			dropped_names.append(self.data.columns[column])
 			self.data = self.data.drop(self.data.columns[column], axis=1)
 			self.__reindex(column)
+
+			return dropped_names
+
 		elif(type(column == list)):
 			for i in range(len(column)):
 				num = column.pop(0)
+				dropped_names.append(self.data.columns[num])
 				self.data = self.data.drop(self.data.columns[num], axis=1)
 				column = self.__reindex(num, column)
+			return dropped_names
+
 		else:
-			error(1, "Argument must be int, list or string")
+			error(1, "Argument must be int, list")
 
 	# Auto-fix feature_range after deletion
 	def __reindex(self, num, l=[]):
@@ -143,6 +152,22 @@ class Model:
 				l[i] -= 1
 		return l
 
+	# Prints all columns outside feature_range
+	def print_non_features(self):
+		if(self.feature_range == None):
+			warning(4, "Feature range hasn't been set yet")
+			return
+
+		aux = []
+		in_range = set(range(self.feature_range[0], self.feature_range[1]+1))
+		out_range = set(range(0, len(self.data.columns)))
+		out_range = out_range - in_range
+
+		for index in out_range:
+			aux.append([index, self.data.columns[index]])
+
+		return aux
+
 	# Separates data in holdout mode
 	def holdout(self, train_s=0.9, stratify=True):
 		if(self.feature_range == None):
@@ -153,9 +178,9 @@ class Model:
 		y = self.data[self.target_column]
 
 		if(stratify):
-			self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(X,y, train_size=0.9, test_size=None, stratify=y, random_state=int(datetime.now().timestamp()))
+			self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(X,y, train_size=train_s, test_size=None, stratify=y, random_state=int(datetime.now().timestamp()))
 		else:
-			self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(X,y, train_size=0.9, test_size=None, random_state=int(datetime.now().timestamp()))
+			self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(X,y, train_size=train_s, test_size=None, random_state=int(datetime.now().timestamp()))
 
 	# Trains the RandomForest model.
 	def fit(self, cpu=-1):
@@ -296,7 +321,7 @@ class Model:
 		if(type(self.data) == pd.DataFrame):
 			text += "\n" + self.__format_string("Dataframe size:") + f'{len(self.data)}x{len(self.data.columns)}'
 		if(type(self.X_train) == pd.DataFrame):
-			text += "\n" + self.__format_string("Holdout:") + f'{len(self.X_train)}' + " instances"
+			text += "\n" + self.__format_string("Holdout:") + f'{len(self.X_train)}' + " instances in training set"
 		
 		return text
 		
