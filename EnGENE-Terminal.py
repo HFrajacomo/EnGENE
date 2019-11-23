@@ -68,6 +68,8 @@ def command_handler(command):
 		NEW <name> <filename>: Loads a new model with data
 		SEE <modelname>: Prints model information
 		DROP <modelname> <columns>: Drop columns from model data
+		SELECT <modelname> <start> <end>: Sets feature columns in dataset
+		TARGET <modelname> <column_name>: Sets the target feature for prediction
 	'''
 	if(type(command) == list):
 		if(command[-1] == "&"):
@@ -81,6 +83,10 @@ def command_handler(command):
 			function_see(command[1], THREADED)
 		elif(command[0].lower() =="drop"):
 			function_drop(command[1], command[2], THREADED)
+		elif(command[0].lower() == "select"):
+			function_select(command[1], command[2], command[3])
+		elif(command[0].lower() == "target"):
+			function_target(command[1], command[2])
 
 # Shows all models created
 def function_models():
@@ -97,9 +103,14 @@ def function_help():
 	print("EnGENE-Terminal " + version)
 	print("by Henrique Frajacomo\n\n")
 
-	print(__format_string("Models: \t\t\tShows all created models"))
-	print(__format_string("Help: \t\t\tShows this help message"))
-	print(__format_string("Quit: \t\t\tQuits EnGENE-Terminal"))
+	print(__format_string("Models: \t\t\t\tShows all created models"))
+	print(__format_string("Help: \t\t\t\tShows this help message"))
+	print(__format_string("Quit: \t\t\t\tQuits EnGENE-Terminal"))
+	print(__format_string("New: \t<modelname>\t<filename>\t\tLoads a new model"))
+	print(__format_string("See: \t<modelname>\t\t\tChecks information about the model"))
+	print(__format_string("Drop: \t<modelname>\t<column_index|list_of_indexes>\t\tDrops the columns specified"))
+	print(__format_string("Select: \t<modelname>\t<start>\t<end>\tSets columns to be considered features in classifier"))
+	print(__format_string("Target: \t<modelname>\t<column_name|column_index>\t\tSets the column to be predicted by the classifier"))
 
 # Formats to table view
 def __format_string(text):
@@ -158,6 +169,33 @@ def function_drop(name, columns, THREADED):
 
 	else:
 		Thread(target=function_see, args=(name, columns, False)).start()
+
+# Select function
+def function_select(name, start, end):
+	try:
+		start = int(start)
+		end = int(end)
+	except ValueError:
+		warning(-3, "Start and End values must be int")
+		return
+
+	if(__model_exist(name)):
+		Model.models[name].set_feature_range(start, end)
+	else:
+		warning(-2, "Model not found") 
+
+# Target function
+def function_target(name, target):
+	try:
+		target = int(target)
+	except:
+		pass
+
+	if(__model_exist(name)):
+		Model.models[name].set_target_column(target)
+	else:
+		warning(-2, "Model not found") 	
+
 
 version = "v1.0"
 QUIT = False
