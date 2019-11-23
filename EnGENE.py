@@ -245,12 +245,11 @@ class Model:
 		return self.top_snps[:top]
 
 	# Runs Model.holdout() and Model.fit() n times
-	def mass_fit(self, n, cpu=-1):
+	def mass_fit(self, n, train_s=0.9, stratify=True, cpu=-1):
 		for i in range(n):
 			progress(f'{i}/{n}')
-			self.holdout()
+			self.holdout(train_s=train_s, stratify=stratify)
 			self.fit(cpu)
-
 
 	# Cross checks important SNPs on similar data models
 	'''
@@ -275,16 +274,16 @@ class Model:
 				for el in model.top_snps:
 					if(score[i][0] == el[0]):
 						score[i][1] += el[1]
-						score[i][2] += 0.3   # Gain multiplier
+						score[i][2] += 0.2  # Gain multiplier
 						break
 
 		else:
 			for i in range(len(score)):
 				for mod in model:
-					for el in mod:
+					for el in mod.top_snps:
 						if(score[i][0] == el[0]):
 							score[i][1] += el[1]
-							score[i][2] += 0.3   # Gain multiplier
+							score[i][2] += 0.2   # Gain multiplier
 							break
 
 		return self.__calculate_cross_check_multiplier(score)						

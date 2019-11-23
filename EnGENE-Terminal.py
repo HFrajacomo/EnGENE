@@ -5,6 +5,8 @@ from ErrorHandling import *
 from threading import Thread, Lock
 from datetime import datetime
 from colorama import init, Fore
+import os
+from time import sleep
 
 init(autoreset=True) # Starts Colorama
 
@@ -62,6 +64,8 @@ def command_handler(command):
 		elif(command.lower() == "quit"):
 			print("Shutting down EnGENE-Terminal...")
 			exit()
+		elif(command.lower() == "clear" or command.lower() == "cls"):
+			os.system("cls" if os.name == 'nt' else 'clear')
 
 	# Multi-argument commands
 	'''
@@ -97,6 +101,18 @@ def command_handler(command):
 			function_holdout(command[1], command[2], command[3], THREADED)
 		elif(command[0].lower() == "unused"):
 			function_unused(command[1])
+		elif(command[0].lower() == "fit"):
+			function_fit(command[1], command[2], THREADED)
+		elif(command[0].lower() == "score"):
+			function_score(command[1])
+		elif(command[0].lower() == "snp"):
+			function_snp(command[1], command[2])
+		elif(command[0].lower() == "massfit"):
+			function_massfit(command[1], command[2], command[3], command[4], THREADED)
+		elif(command[0].lower() == "unload"):
+			function_unload(command[1])
+		elif(command[0].lower() == "cross"):
+			function_cross(command[1], command[2], THREADED)
 
 # Shows all models created
 def function_models():
@@ -111,22 +127,30 @@ def function_models():
 # Help function
 def function_help():
 	print()
-	print("EnGENE-Terminal " + version)
-	print("by Henrique Frajacomo\n\n")
+	print(Fore.GREEN + "EnGENE-Terminal " + version)
+	print(Fore.GREEN + "Genetic Enhancement Engine")
+	print(Fore.GREEN + "by Henrique Frajacomo\n\n")
 
-	print(__format_string("Models: \t\t\t\tShows all created models"))
-	print(__format_string("Help: \t\t\t\tShows this help message"))
-	print(__format_string("Quit: \t\t\t\tQuits EnGENE-Terminal"))
-	print(__format_string("New: \t<modelname>\t<filename>\t\tLoads a new model"))
-	print(__format_string("See: \t<modelname>\t\t\tChecks information about the model"))
-	print(__format_string("Drop: \t<modelname>\t<col_index|index_list>\t\tDrops the columns specified"))
-	print(__format_string("Select: \t<modelname>\t<start>\t<end>\tSets columns to be considered features in classifier"))
-	print(__format_string("Target: \t<modelname>\t<col_name|col_index>\t\tSets the column to be predicted by the classifier"))
-	print(__format_string("Unused: \t<modelname>\t\t\tPrints all columns outside feature space"))
-	print(__format_string("Dummies: \t<modelname>\t\t\tCreates dummy variables in model feature space"))
-	print(__format_string("GetClasses: \t<modelname>\t\t\tPrints all class values in target class"))
-	print(__format_string("OVATransform: \t<modelname>\t<classname>\t\tPerforms a One-vs-All transformation in model data"))
-	print(__format_string("Holdout: \t<modelname>\t<train%=0.9>\t<stratify=y/n>\tPerforms holdout in separating train\% of the dataset and stratifying or not"))
+	print(__format_string("Models: \t\t\t\t\tShows all created models"))
+	print(__format_string("Help: \t\t\t\t\tShows this help message"))
+	print(__format_string("Quit: \t\t\t\t\tQuits EnGENE-Terminal"))
+	print(__format_string("Clear: \t\t\t\t\tClears terminal screen"))
+	print(__format_string("New: \t<modelname>\t<filename>\t\t\tLoads a new model"))
+	print(__format_string("See: \t<modelname>\t\t\t\tChecks information about the model"))
+	print(__format_string("Drop: \t<modelname>\t<col_index|index_list>\t\t\tDrops the columns specified"))
+	print(__format_string("Select: \t<modelname>\t<start>\t<end>\t\tSets columns to be considered features in classifier"))
+	print(__format_string("Target: \t<modelname>\t<col_name|col_index>\t\t\tSets the column to be predicted by the classifier"))
+	print(__format_string("Unused: \t<modelname>\t\t\t\tPrints all columns outside feature space"))
+	print(__format_string("Dummies: \t<modelname>\t\t\t\tCreates dummy variables in model feature space"))
+	print(__format_string("GetClasses: \t<modelname>\t\t\t\tPrints all class values in target class"))
+	print(__format_string("OVATransform: \t<modelname>\t<classname>\t\t\tPerforms a One-vs-All transformation in model data"))
+	print(__format_string("Holdout: \t<modelname>\t<train%=0.9>\t<stratify=y/n>\t\tPerforms holdout in separating train\% of the dataset and stratifying or not"))
+	print(__format_string("Fit: \t<modelname>\t<cpu_amount>\t\t\tTrains the model. Cpu=-1 uses all processor cores"))
+	print(__format_string("Massfit: \t<modelname>\t<n_runs>\t<train%=0.9>\t<cpu_amount>\tDoes n FIT operations"))
+	print(__format_string("Score: \t<modelname>\t\t\t\tPrints Mean Precision and Recall scores"))
+	print(__format_string("Snp: \t<modelname>\t<n_elements>\t\t\tGets a ranked list of snps detected"))
+	print(__format_string("Unload: \t<modelname>\t\t\t\tUnloads memory for model classifier. Keeps snps."))
+	print(__format_string("Cross: \t<modelname>\t<model|models_list>\t\t\tCross references SNPs of similar models to improve SNP score"))
 
 # Formats to table view
 def __format_string(text):
@@ -267,7 +291,114 @@ def function_unused(name):
 			for element in aux:
 				print(element)
 		else:
-			warning(-2, "Model not found")		
+			warning(-2, "Model not found")	
+
+# Fit function - Recursive
+def function_fit(name, cpu, THREADED):
+	if(not THREADED):
+		if(__model_exist(name)):
+			try:
+				cpu = int(cpu)
+			except ValueError:
+				warning(-5, "Cpu must be int")
+				return
+
+			Model.models[name].fit(cpu=cpu)
+		else:
+			warning(-2, "Model not found")	
+	else:
+		Thread(target=function_fit, args=(name, cpu, False)).start()
+
+# Score function
+def function_score(name):
+	if(__model_exist(name)):
+		print(f'Mean Precision: {Model.models[name].get_mean_precision()}')
+		print(f'Mean Recall: {Model.models[name].get_mean_recall()}')
+	else:
+		warning(-2, "Model not found")		
+
+# SNP function
+def function_snp(name, n):
+	if(__model_exist(name)):
+		try:
+			n = int(n)
+		except ValueError:
+			warning(-5, "n_elements must be int")
+			return
+
+		Model.models[name].calculate_top_snps()
+		aux = Model.models[name].get_top_snps(top=n)
+		for element in aux:
+			print(element)
+	else:
+		warning(-2, "Model not found")	
+
+# Massfit function
+def function_massfit(name, n, train, cpu, THREADED):
+	if(not THREADED):
+		if(__model_exist(name)):
+			try:
+				cpu = int(cpu)
+				n = int(n)
+			except ValueError:
+				warning(-5, "Cpu and n must be int")
+				return
+
+			try:
+				train = float(train)
+			except ValueError:
+				warning(-4, "Train% value must be a float between 0 and 1")
+				return
+
+			Model.models[name].mass_fit(n, train_s=train, cpu=cpu)
+		else:
+			warning(-2, "Model not found")	
+	else:
+		Thread(target=function_massfit, args=(name, n, train, cpu, False)).start()	
+
+# Unload function
+def function_unload(name):
+	if(__model_exist(name)):
+		Model.models[name].unload()
+	else:
+		warning(-2, "Model not found")	
+
+# Cross function - Recursive
+def function_cross(name, model, THREADED):
+	if(not THREADED):
+		if(not __model_exist(name)):
+			warning(-2, f"Model {name} not found. Cross check has stopped")
+			return
+
+
+		# Single model
+		if(model.count("[") == 0):
+			if(not __model_exist(model)):
+				warning(-2, f"Model {model} not found. Cross check has stopped")
+				return
+
+			scores = Model.models[name].cross_check_models(Model.models[model])
+
+		# Multiple models
+		else:
+			# String parsing
+			new_string = model.replace(" ", "").replace("[", "").replace("]", "").split(",")
+			for mod in new_string:
+				if(not __model_exist(mod)):
+					warning(-2, f"Model {mod} not found. Cross check has stopped")
+					return
+
+			scores = Model.models[name].cross_check_models([Model.models[x] for x in new_string])
+
+		print(Fore.CYAN + "Crossing process finished!")
+		for element in scores:
+			print(element)
+
+	else:
+		print(Fore.CYAN + "Crossing models in Threaded mode. Please do not modify the models until the process is finished!")
+		sleep(0.01)
+		Thread(target=function_cross, args=(name, model, False)).start()
+
 
 version = "v1.0"
 QUIT = False
