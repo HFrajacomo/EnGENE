@@ -10,6 +10,7 @@ from ErrorHandling import *
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import precision_score, recall_score
+import os
 
 class Model:
 	models = {}
@@ -18,7 +19,13 @@ class Model:
 		# Dataset Atributes
 		self.modelname = modelname
 		self.filename = filename
-		self.data = pd.read_csv(filename)
+
+		try:
+			self.data = pd.read_csv(filename)
+		except FileNotFoundError:
+			warning(0, f"File {filename} not found")
+			return
+
 		self.target_column = None
 		self.target_index = None
 		self.feature_range = None
@@ -116,7 +123,7 @@ class Model:
 		cols.append(self.target_column)
 		self.data = self.data.reindex(columns=cols)
 
-		self.feature_range[0] = original_size - self.feature_range[1]
+		self.feature_range[0] += (original_size - self.feature_range[1]) - 1
 		self.feature_range[1] = len(cols)-2
 
 	# Drops unnecessary columns
@@ -155,7 +162,7 @@ class Model:
 				l[i] -= 1
 		return l
 
-	# Prints all columns outside feature_range
+	# Returns all columns outside feature_range
 	def print_non_features(self):
 		if(self.feature_range == None):
 			warning(4, "Feature range hasn't been set yet")
@@ -347,31 +354,16 @@ class Model:
 			text += "\n" + self.__format_string("Precision: ") + '{0:.5f}'.format(self.get_mean_precision())
 			text += "\n" + self.__format_string("Recall: ") + '{0:.5f}'.format(self.get_mean_recall())
 		return text
-		
 
-'''
-m = Model("Vilhena", 'TA_Vilhena_Seq2006_SNPs.csv')
-o = Model("Goiânia", 'TA_Goiania_Irr2005_SNPs.csv')
-m.set_target_column(-1)
-o.set_target_column(-1)
+	# Saved Model.data to a new .csv file
+	def save_to_csv(self):
+		# Creates save dir
+		if(os.name == 'nt' and not os.path.isdir("Saved_Models")):
+			os.system("mkdir Saved_Models")
+		elif(os.name != 'nt' and not os.path.isdir("Saved_Models")):
+			os.system("mkdir Saved_Models")
 
-print(m)
-
-m.destroy_column(-2)
-#o.destroy_column(-2)
-
-m.set_feature_range(1,4709)
-#o.set_feature_range(1,4709)
-
-m.create_dummies()
-#o.create_dummies()
-m.holdout()
-m.fit()
-#o.mass_fit(100)
-print(m)
-
-#m.calculate_top_snps()
-#o.calculate_top_snps()
-
-#print(m.cross_check_models(o)[:10])
-'''
+		if(os.name == 'nt'):
+			self.data.to_csv("Saved_Models\\Model_" + self.modelname + ".csv", header=self.data.columns, index=False)
+		else:
+			self.data.to_csv("Saved_Models/Model_" + self.modelname + ".csv", header=self.data.columns, index=False)

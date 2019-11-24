@@ -208,9 +208,31 @@ def command_handler(command):
 			else:
 				warning(-7, "Syntax: cross <basemodel> <model|list_of_models>")
 
-		elif(command[0].lower() == "print"): #### DEBUG ####
-			print(Model.models[command[1]].data)
+		elif(command[0].lower() == "print"):
+			if(n_args == 1):
+				function_print(command[1])
+			else:
+				warning(-7, "Syntax: print <modelname>")
 
+		elif(command[0].lower() == "save"):
+			if(n_args == 1):
+				function_save(command[1])
+			else:
+				warning(-7, "Syntax: save <modelname>")
+
+
+			'''
+			Simplified commands for non-Computer Scientists
+			'''
+
+		elif(command[0].lower() == "load"):
+			if(n_args == 6):
+				function_load(command[1], command[2], command[3], command[4], command[5], command[6], THREADED)
+			elif(n_args == 5):
+				warning(-8, "Load defaulted target class to None. Therefore it won't perform OVATransform. Note that future warning or errors may occur because of that!")
+				function_load(command[1], command[2], command[3], command[4], command[5], None, THREADED)
+			else:
+				warning(-7, "Syntax: load <input_name> <filename> <column_of_first_SNP> <column_of_last_SNP> <target_feature_column>")
 		else:
 			warning(-6, f"Command {command[0]} not found")
 			return
@@ -232,26 +254,48 @@ def function_help():
 	print(Fore.GREEN + "Genetic Enhancement Engine")
 	print(Fore.GREEN + "by Henrique Frajacomo\n\n")
 
+	print(Fore.RED + "Useful Commands")
 	print(__format_string("Models: \t\t\t\t\tShows all created models"))
 	print(__format_string("Help: \t\t\t\t\tShows this help message"))
 	print(__format_string("Quit: \t\t\t\t\tQuits EnGENE-Terminal"))
 	print(__format_string("Clear: \t\t\t\t\tClears terminal screen"))
+	print(__format_string("Print: \t<modelname>\t\t\t\tRough visualization of model data"))
+	print(__format_string("Unused: \t<modelname>\t\t\t\tPrints all columns outside feature space"))
+	print(__format_string("GetClasses: \t<modelname>\t\t\t\tPrints all class values in target class"))
+
+	print(Fore.RED + "Model I/O")	
 	print(__format_string("New: \t<modelname>\t<filename>\t\t\tLoads a new model"))
 	print(__format_string("See: \t<modelname>\t\t\t\tChecks information about the model"))
+	print(__format_string("Save: \t<modelname>\t\t\t\tSaves Model data to a new dataset in Saved_Models folder"))
+
+	print(Fore.RED + "Model Configuration")
 	print(__format_string("Drop: \t<modelname>\t<col_index|index_list>\t\t\tDrops the columns specified"))
 	print(__format_string("Select: \t<modelname>\t<start>\t<end>\t\tSets columns to be considered features in classifier"))
 	print(__format_string("Target: \t<modelname>\t<col_name|col_index>\t\t\tSets the column to be predicted by the classifier"))
-	print(__format_string("Unused: \t<modelname>\t\t\t\tPrints all columns outside feature space"))
-	print(__format_string("Dummies: \t<modelname>\t\t\t\tCreates dummy variables in model feature space"))
-	print(__format_string("GetClasses: \t<modelname>\t\t\t\tPrints all class values in target class"))
+
+	print(Fore.RED + "Model Transformations")
+	print(__format_string("Dummies: \t<modelname>\t\t\t\tCreates dummy variables in model feature space"))	
 	print(__format_string("OVATransform: \t<modelname>\t<classname>\t\t\tPerforms a One-vs-All transformation in model data"))
+	print(__format_string("Unload: \t<modelname>\t\t\t\tUnloads memory for model classifier. Keeps snps."))
+	
+	print(Fore.RED + "Model Training")
 	print(__format_string("Holdout: \t<modelname>\t<train%=0.9>\t<stratify=y/n>\t\tPerforms holdout in separating train\% of the dataset and stratifying or not"))
 	print(__format_string("Fit: \t<modelname>\t<cpu_amount=-1>\t\t\tTrains the model. Cpu=-1 uses all processor cores"))
-	print(__format_string("Massfit: \t<modelname>\t<n_runs=1000>\t<train%=0.9>\t<cpu_amount=-1>\tDoes n FIT operations"))
+	print(__format_string("Massfit: \t<modelname>\t<n_runs=1000>\t<train%=0.9>\t<cpu=-1>\tDoes n FIT operations"))
 	print(__format_string("Score: \t<modelname>\t\t\t\tPrints Mean Precision and Recall scores"))
 	print(__format_string("Snp: \t<modelname>\t<n_elements=[all]>\t\t\tGets a ranked list of snps detected"))
-	print(__format_string("Unload: \t<modelname>\t\t\t\tUnloads memory for model classifier. Keeps snps."))
 	print(__format_string("Cross: \t<modelname>\t<model|models_list>\t<top_rank=10>\t\tCross references SNPs of similar models to improve SNP score"))
+
+	print()
+	print(Fore.RED + "!!!!!! SIMPLIFIED COMMANDS !!!!!!")
+	# Load
+	print(Fore.GREEN + "Load Command\n")
+	print("Description: Loads and prepares a model based on an input dataset and user-given information")
+	print("Syntax: Load <name> <filename> <feature_space_start> <feature_space_end> <target_column> <target_class>?\n")
+	print("Name: The name to be given to the new model\nFilename: Path to input dataset\nFeature_space_start: An integer that represents the column index of the first SNP. Starts at 0.")
+	print("Feature_space_end: An integer that represents the column index of the last SNP. Starts at 0.\nTarget_column: The column name or integer representing the column index of the investigated feature")
+	print("Target_class: The specific value of the target column that wants to be discovered (ignore if there are only two classes)\n")
+	print("Example: Load test_model models/test.csv 1 10 growth_speed fast\n")
 
 # Formats to table view
 def __format_string(text):
@@ -520,6 +564,56 @@ def function_cross(name, model, top, THREADED):
 		print(Fore.CYAN + "Crossing models in Threaded mode. Please do not modify the models until the process is finished!")
 		sleep(0.01)
 		Thread(target=function_cross, args=(name, model, False)).start()
+
+# Print function
+def function_print(name):
+	if(__model_exist(name)):
+		print(Model.models[name].data)
+	else:
+		warning(-2, "Model not found")	
+
+# Save function
+def function_save(name):
+	if(__model_exist(name)):
+		Model.models[name].save_to_csv()
+	else:
+		warning(-2, "Model not found")		
+
+'''
+Simplified commands implementation
+'''
+
+# Loads and configures model - Recursive
+def function_load(name, filename, start, end, target, target_class, THREADED):
+	if(not THREADED):
+		try:
+			start = int(start)
+			end = int(end)
+		except ValueError:
+			warning(-5, "Start and End position must be int")
+			return
+
+		try:
+			target = int(target)
+		except ValueError:
+			pass
+
+		Model(name, filename)
+		Model.models[name].set_target_column(target)
+		Model.models[name].set_feature_range(start, end)
+
+		if(target_class == None and len(Model.models[name].get_classes()) != 2):
+			warning(-9, "Model cannot be loaded because target_class wasn't set. Please set the class or perform OVATransform command on your model")
+			return
+		elif(target_class != None):
+			Model.models[name].one_vs_all_transform(target_class)
+
+		Model.models[name].create_dummies()
+
+	else:
+		Thread(target=function_load, args=(name, filename, start, end, target, target_class, False)).start()					
+
+
 
 # Welcome Message
 def welcome():
