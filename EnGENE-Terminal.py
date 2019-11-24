@@ -137,14 +137,14 @@ def command_handler(command):
 			if(n_args == 3):
 				function_holdout(command[1], command[2], command[3], THREADED)
 			elif(n_args == 2 and __isfloat(command[2])):
-				function_holdout(command[1], command[2], "y", THREADED)
 				warning(-8, "Holdout defaulted Stratify=y")
+				function_holdout(command[1], command[2], "y", THREADED)
 			elif(n_args == 2 and not __isfloat(command[2])):
-				function_holdout(command[1], "0.9" , command[2], THREADED)
 				warning(-8, "Holdout defaulted Train%=0.9")
+				function_holdout(command[1], "0.9" , command[2], THREADED)
 			elif(n_args == 1):
-				function_holdout(command[1], "0.9" , "y", THREADED)				
 				warning(-8, "Holdout defaulted Train%=0.9 and Stratify=y")
+				function_holdout(command[1], "0.9" , "y", THREADED)				
 			else:
 				warning(-7, "Syntax: holdout <modelname> <train%=0.9> <stratify=y>")
 
@@ -158,8 +158,8 @@ def command_handler(command):
 			if(n_args == 2):
 				function_fit(command[1], command[2], THREADED)
 			elif(n_args == 1):
-				function_fit(command[1], "-1", THREADED)
 				warning(-8, "Fit defaulted cpu=-1")
+				function_fit(command[1], "-1", THREADED)
 			else:
 				warning(-7, "Syntax: fit <modelname> <cpu=-1>")
 
@@ -173,8 +173,8 @@ def command_handler(command):
 			if(n_args == 2):
 				function_snp(command[1], command[2])
 			elif(n_args == 1):
-				function_snp(command[1], None)
 				warning(-8, "Snp defaulted to top='all'")
+				function_snp(command[1], None)
 			else:
 				warning(-7, "Syntax: snp <modelname> <rank_positions=[shows all]>")
 
@@ -182,14 +182,14 @@ def command_handler(command):
 			if(n_args == 4):
 				function_massfit(command[1], command[2], command[3], command[4], THREADED)
 			elif(n_args == 3):
-				function_massfit(command[1], command[2], command[3], "-1", THREADED)
 				warning(-8, "Massfit defaulted cpu=-1")
+				function_massfit(command[1], command[2], command[3], "-1", THREADED)
 			elif(n_args == 2):
-				function_massfit(command[1], command[2], "0.9", "-1", THREADED)
 				warning(-8, "Massfit defaulted cpu=-1 and train%=0.9")
+				function_massfit(command[1], command[2], "0.9", "-1", THREADED)
 			elif(n_args == 1):
-				function_massfit(command[1], "1000", "0.9", "-1", THREADED)
 				warning(-8, "Massfit defaulted cpu=-1 and train%=0.9 and n_runs=1000")
+				function_massfit(command[1], "1000", "0.9", "-1", THREADED)
 			else:
 				warning(-7, "Syntax: massfit <modelname> <n_runs=1000> <train%=0.9> <cpu=-1>")
 
@@ -203,8 +203,8 @@ def command_handler(command):
 			if(n_args == 3):
 				function_cross(command[1], command[2], command[3], THREADED)
 			elif(n_args == 2):
-				function_cross(command[1], command[2], None, THREADED)
 				warning(-8, "Cross defaulted top_rank=all")
+				function_cross(command[1], command[2], None, THREADED)
 			else:
 				warning(-7, "Syntax: cross <basemodel> <model|list_of_models>")
 
@@ -233,6 +233,13 @@ def command_handler(command):
 				function_load(command[1], command[2], command[3], command[4], command[5], None, THREADED)
 			else:
 				warning(-7, "Syntax: load <input_name> <filename> <column_of_first_SNP> <column_of_last_SNP> <target_feature_column>")
+		
+		elif(command[0].lower() == "train"):
+			if(n_args == 1):
+				function_train(command[1], THREADED)
+			else:
+				warning(-7, "Syntax: train <modelname|list_of_models>")
+
 		else:
 			warning(-6, f"Command {command[0]} not found")
 			return
@@ -289,13 +296,22 @@ def function_help():
 	print()
 	print(Fore.RED + "!!!!!! SIMPLIFIED COMMANDS !!!!!!")
 	# Load
-	print(Fore.GREEN + "Load Command\n")
+	print(Fore.CYAN + "Load\n")
 	print("Description: Loads and prepares a model based on an input dataset and user-given information")
 	print("Syntax: Load <name> <filename> <feature_space_start> <feature_space_end> <target_column> <target_class>?\n")
 	print("Name: The name to be given to the new model\nFilename: Path to input dataset\nFeature_space_start: An integer that represents the column index of the first SNP. Starts at 0.")
 	print("Feature_space_end: An integer that represents the column index of the last SNP. Starts at 0.\nTarget_column: The column name or integer representing the column index of the investigated feature")
 	print("Target_class: The specific value of the target column that wants to be discovered (ignore if there are only two classes)\n")
-	print("Example: Load test_model models/test.csv 1 10 growth_speed fast\n")
+	print("Example: Load test_model models/test.csv 1 10 growth_speed fast\n\n")
+
+	# Train
+	print(Fore.CYAN + "Train\n")
+	print("Description: Trains one or more models the recommended amount of times and calculates their score. If a list of models is given, calculates the cross correlation between the SNPs' scores")
+	print("Syntax: Train <modelname or list_of_model_names>\n")
+	print("Model_name: The name assigned to the model that needs training")
+	print("List_of_model_names: A list of model names between brackets []\n")
+	print("Example: Train test_model")
+	print("Example: Train [test_model, rice_model_A, rice_model_B]")
 
 # Formats to table view
 def __format_string(text):
@@ -598,21 +614,70 @@ def function_load(name, filename, start, end, target, target_class, THREADED):
 		except ValueError:
 			pass
 
+		# New
 		Model(name, filename)
+		if(not __model_exist(name)):
+			return
+
+		# Target
 		Model.models[name].set_target_column(target)
+		# Select
 		Model.models[name].set_feature_range(start, end)
 
+		# OVATransform
 		if(target_class == None and len(Model.models[name].get_classes()) != 2):
 			warning(-9, "Model cannot be loaded because target_class wasn't set. Please set the class or perform OVATransform command on your model")
 			return
 		elif(target_class != None):
-			Model.models[name].one_vs_all_transform(target_class)
+			code = Model.models[name].one_vs_all_transform(target_class)
+			if(code == 0):
+				return
 
+		# Dummies
 		Model.models[name].create_dummies()
 
 	else:
 		Thread(target=function_load, args=(name, filename, start, end, target, target_class, False)).start()					
 
+# Full-on training and results calculation for models
+def function_train(model, THREADED):
+	if(not THREADED):
+		if(model.count("[") > 0):
+			model = model.replace("[", "").replace("]", "").split(",")
+			threads = []
+
+			for mod in model:
+				if(not __model_exist(mod)):
+					warning(-2, f"Model {mod} not found")
+					return
+					
+			for mod in model:
+				threads.append(Thread(target=Model.models[mod].mass_fit, args=(1000,)))
+				threads[-1].start()
+
+			for th in threads:
+				th.join()
+
+			scores = Model.models[model[0]].cross_check_models([Model.models[x] for x in model])
+			for element in scores:
+				print('{:<15}'.format(element[0] + ": ") + '{:>10}'.format(str(element[1])))
+	
+		else:
+			if(not __model_exist(model)):
+				warning(-2, f"Model {model} not found")
+				return
+
+			Model.models[model].mass_fit(1000)
+			print(f'Mean Precision: {Model.models[model].get_mean_precision()}')
+			print(f'Mean Recall: {Model.models[model].get_mean_recall()}')
+			Model.models[model].calculate_top_snps()
+
+			print()
+			for element in Model.models[model].get_top_snps():
+				print('{:<15}'.format(element[0] + ": ") + '{:>5}'.format(str(element[1])))
+
+	else:
+		Thread(target=function_train, args=(model, False)).start()					
 
 
 # Welcome Message

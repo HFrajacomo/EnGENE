@@ -90,7 +90,7 @@ class Model:
 	def one_vs_all_transform(self, target_class):
 		if(self.target_column == None):
 			warning(2, "Target class hasn't been set yet")
-			return
+			return 0
 
 		for i in range(len(self.data[self.target_column])):
 			if(self.data.iat[i, self.target_index] != target_class):
@@ -107,7 +107,7 @@ class Model:
 	def create_dummies(self):
 		if(self.feature_range == None):
 			warning(4, "Feature range hasn't been set yet")
-			return
+			return 0
 
 		original_size = len(self.data.columns)-1
 
@@ -182,12 +182,12 @@ class Model:
 	def holdout(self, train_s=0.9, stratify=True):
 		if(self.feature_range == None):
 			warning(4, "Feature range hasn't been set yet")
-			return
+			return 0
 
 		# Check if data is binary
 		if(len(self.get_classes()) != 2):
 			warning(7, "Target feature is not binary. Try Model.one_vs_all_transform()")
-			return
+			return 0
 
 		X = self.data[self.data.columns[self.feature_range[0]: self.feature_range[1]+1]]
 		y = self.data[self.target_column]
@@ -266,7 +266,12 @@ class Model:
 	def mass_fit(self, n, train_s=0.9, stratify=True, cpu=-1):
 		for i in range(n):
 			progress(f'{i}/{n}')
-			self.holdout(train_s=train_s, stratify=stratify)
+			errcode = self.holdout(train_s=train_s, stratify=stratify)
+
+			if(errcode == 0):
+				warning(8, "Too many classes in target column. Try running an OVATransform")
+				return 0
+				
 			self.fit(cpu)
 		print("Training of model " + self.modelname + " is done!")
 
