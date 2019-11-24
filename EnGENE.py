@@ -102,6 +102,8 @@ class Model:
 			warning(4, "Feature range hasn't been set yet")
 			return
 
+		original_size = len(self.data.columns)-1
+
 		feature_names = []
 		for i in range(self.feature_range[0], self.feature_range[1]+1):
 			feature_names.append(self.data.columns[i])
@@ -114,6 +116,7 @@ class Model:
 		cols.append(self.target_column)
 		self.data = self.data.reindex(columns=cols)
 
+		self.feature_range[0] = original_size - self.feature_range[1]
 		self.feature_range[1] = len(cols)-2
 
 	# Drops unnecessary columns

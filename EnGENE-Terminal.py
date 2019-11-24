@@ -208,6 +208,9 @@ def command_handler(command):
 			else:
 				warning(-7, "Syntax: cross <basemodel> <model|list_of_models>")
 
+		elif(command[0].lower() == "print"): #### DEBUG ####
+			print(Model.models[command[1]].data)
+
 		else:
 			warning(-6, f"Command {command[0]} not found")
 			return
