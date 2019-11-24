@@ -174,6 +174,11 @@ class Model:
 			warning(4, "Feature range hasn't been set yet")
 			return
 
+		# Check if data is binary
+		if(len(self.get_classes()) != 2):
+			warning(7, "Target feature is not binary. Try Model.one_vs_all_transform()")
+			return
+
 		X = self.data[self.data.columns[self.feature_range[0]: self.feature_range[1]+1]]
 		y = self.data[self.target_column]
 
@@ -185,7 +190,7 @@ class Model:
 	# Trains the RandomForest model.
 	def fit(self, cpu=-1):
 		if(type(self.X_train) != pd.DataFrame):
-			error(2, "No data to fit. Use Model.holdout() before fitting data")
+			warning(2, "No data to fit. Use Model.holdout() before fitting data")
 
 		# 10 + SNP%20 trees in the forest
 		n_trees = (self.feature_range[1] - self.feature_range[0] + 1)%20 + 10
@@ -242,7 +247,10 @@ class Model:
 
 	# Get top SNPs until top element
 	def get_top_snps(self, top=10):
-		return self.top_snps[:top]
+		if(top == None):
+			return self.top_snps
+		else:
+			return self.top_snps[:top]
 
 	# Runs Model.holdout() and Model.fit() n times
 	def mass_fit(self, n, train_s=0.9, stratify=True, cpu=-1):
@@ -250,6 +258,7 @@ class Model:
 			progress(f'{i}/{n}')
 			self.holdout(train_s=train_s, stratify=stratify)
 			self.fit(cpu)
+		print("Training of model " + self.modelname + " is done!")
 
 	# Cross checks important SNPs on similar data models
 	'''
@@ -263,6 +272,10 @@ class Model:
 	def cross_check_models(self, model):
 		if(type(model) != Model and type(model) != list):
 			error(3, f"{type(model)} received on cross_check_models(). Try using a Model or list of models.")
+		if(self.top_snps == []):
+			self.calculate_top_snps()
+
+
 		# score[0] = SNP, [1] = avg(importance), [2] = appearance multiplier 
 		score = self.top_snps.copy()
 		for element in score:
@@ -270,20 +283,26 @@ class Model:
 
 
 		if(type(model) == Model):
+			if(model.top_snps == []):
+				model.calculate_top_snps()
+
 			for i in range(len(score)):
 				for el in model.top_snps:
 					if(score[i][0] == el[0]):
 						score[i][1] += el[1]
-						score[i][2] += 0.2  # Gain multiplier
+						score[i][2] += 0.3  # Gain multiplier
 						break
 
 		else:
 			for i in range(len(score)):
 				for mod in model:
+					if(mod.top_snps == []):
+						mod.calculate_top_snps()
+
 					for el in mod.top_snps:
 						if(score[i][0] == el[0]):
 							score[i][1] += el[1]
-							score[i][2] += 0.2   # Gain multiplier
+							score[i][2] += 0.3   # Gain multiplier
 							break
 
 		return self.__calculate_cross_check_multiplier(score)						
@@ -312,16 +331,18 @@ class Model:
 	# Terminal print of Model class
 	def __repr__(self):
 		text = self.modelname + "\n"
-		text += self.__format_string("Filename:") + f'{self.filename}\n'
-		text += self.__format_string("Target Feature:") + f'{self.target_column}\n'
-		text += self.__format_string("Feature Range:") + f'{self.feature_range}\n'
-		text += self.__format_string("Times Trained:") + f'{self.times_fit}'
+		text += self.__format_string("Filename: ") + f'{self.filename}\n'
+		text += self.__format_string("Target Feature: ") + f'{self.target_column}\n'
+		text += self.__format_string("Feature Range: ") + f'{self.feature_range}\n'
+		text += self.__format_string("Times Trained: ") + f'{self.times_fit}'
 
 		if(type(self.data) == pd.DataFrame):
-			text += "\n" + self.__format_string("Dataframe size:") + f'{len(self.data)}x{len(self.data.columns)}'
+			text += "\n" + self.__format_string("Dataframe size: ") + f'{len(self.data)}x{len(self.data.columns)}'
 		if(type(self.X_train) == pd.DataFrame):
-			text += "\n" + self.__format_string("Holdout:") + f'{len(self.X_train)}' + " instances in training set"
-		
+			text += "\n" + self.__format_string("Holdout: ") + f'{len(self.X_train)}' + " instances in training set"
+		if(self.times_fit > 0):
+			text += "\n" + self.__format_string("Precision: ") + '{0:.5f}'.format(self.get_mean_precision())
+			text += "\n" + self.__format_string("Recall: ") + '{0:.5f}'.format(self.get_mean_recall())
 		return text
 		
 

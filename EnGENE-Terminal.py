@@ -51,11 +51,6 @@ def command_handler(command):
 		command = command[0]
 
 	# Single-argument commands
-	'''
-		MODELS: List all models that were created
-		QUIT: Quits EnGENE-Terminal
-		HELP: Prompts a help message
-	'''
 	if(type(command) == str):
 		if(command.lower() == "models"):
 			function_models()
@@ -66,53 +61,156 @@ def command_handler(command):
 			exit()
 		elif(command.lower() == "clear" or command.lower() == "cls"):
 			os.system("cls" if os.name == 'nt' else 'clear')
+		elif(command.lower() == ""):
+			return
+		else:
+			warning(-6, f"Command {command} not found")
+			return
 
 	# Multi-argument commands
-	'''
-		NEW <name> <filename>: Loads a new model with data
-		SEE <modelname>: Prints model information
-		DROP <modelname> <columns>: Drop columns from model data
-		SELECT <modelname> <start> <end>: Sets feature columns in dataset
-		TARGET <modelname> <column_name>: Sets the target feature for prediction
-	'''
 	if(type(command) == list):
 		if(command[-1] == "&"):
 			THREADED = True
+			command.pop(-1)
 		else:
 			THREADED = False
 
+		# Removes blank char
+		pop = 0
+		for i in range(len(command)):
+			if(command[i] == ""):
+				pop += 1
+		for i in range(0, pop):
+			command.remove("")
+
+		n_args = len(command)-1
+
 		if(command[0].lower() == "new"):
-			function_new(command[1], command[2], THREADED)
+			if(n_args == 2):
+				function_new(command[1], command[2], THREADED)
+			else:
+				warning(-7, "Syntax: new <modelname> <filename>")
+
 		elif(command[0].lower() == "see"):
-			function_see(command[1], THREADED)
+			if(n_args == 1):
+				function_see(command[1], THREADED)
+			else:
+				warning(-7, "Syntax: see <modelname>")
+
 		elif(command[0].lower() =="drop"):
-			function_drop(command[1], command[2], THREADED)
+			if(n_args == 2):
+				function_drop(command[1], command[2], THREADED)
+			else:
+				warning(-7, "Syntax: drop <modelname> <column_index|list_of_indexes>")
+		
 		elif(command[0].lower() == "select"):
-			function_select(command[1], command[2], command[3])
+			if(n_args == 3):
+				function_select(command[1], command[2], command[3])
+			else:
+				warning(-7, "Syntax: select <modelname> <startpos> <endpos>\nindexes always start at 0")
+
 		elif(command[0].lower() == "target"):
-			function_target(command[1], command[2])
+			if(n_args == 2):
+				function_target(command[1], command[2])
+			else:
+				warning(-7, "Syntax: target <modelname> <target_column_index|column_name>")
+
 		elif(command[0].lower() == "dummies"):
-			function_dummies(command[1], THREADED)
+			if(n_args == 1):
+				function_dummies(command[1], THREADED)
+			else:
+				warning(-7, "Syntax: dummies <modelname>")
+
 		elif(command[0].lower() == "getclasses"):
-			function_get_classes(command[1])
+			if(n_args == 1):
+				function_get_classes(command[1])
+			else:
+				warning(-7, "Syntax: getclasses <modelname>")
+
 		elif(command[0].lower() == "ovatransform"):
-			function_ova_transform(command[1], command[2], THREADED)
+			if(n_args == 2):
+				function_ova_transform(command[1], command[2], THREADED)
+			else:
+				warning(-7, "Syntax: ovatransform <modelname> <target_class>")
+
 		elif(command[0].lower() == "holdout"):
-			function_holdout(command[1], command[2], command[3], THREADED)
+			if(n_args == 3):
+				function_holdout(command[1], command[2], command[3], THREADED)
+			elif(n_args == 2 and __isfloat(command[2])):
+				function_holdout(command[1], command[2], "y", THREADED)
+				warning(-8, "Holdout defaulted Stratify=y")
+			elif(n_args == 2 and not __isfloat(command[2])):
+				function_holdout(command[1], "0.9" , command[2], THREADED)
+				warning(-8, "Holdout defaulted Train%=0.9")
+			elif(n_args == 1):
+				function_holdout(command[1], "0.9" , "y", THREADED)				
+				warning(-8, "Holdout defaulted Train%=0.9 and Stratify=y")
+			else:
+				warning(-7, "Syntax: holdout <modelname> <train%=0.9> <stratify=y>")
+
 		elif(command[0].lower() == "unused"):
-			function_unused(command[1])
+			if(n_args == 1):
+				function_unused(command[1])
+			else:
+				warning(-7, "Syntax: unused <modelname>")
+
 		elif(command[0].lower() == "fit"):
-			function_fit(command[1], command[2], THREADED)
+			if(n_args == 2):
+				function_fit(command[1], command[2], THREADED)
+			elif(n_args == 1):
+				function_fit(command[1], "-1", THREADED)
+				warning(-8, "Fit defaulted cpu=-1")
+			else:
+				warning(-7, "Syntax: fit <modelname> <cpu=-1>")
+
 		elif(command[0].lower() == "score"):
-			function_score(command[1])
+			if(n_args == 1):
+				function_score(command[1])
+			else:
+				warning(-7, "Syntax: score <modelname>")
+
 		elif(command[0].lower() == "snp"):
-			function_snp(command[1], command[2])
+			if(n_args == 2):
+				function_snp(command[1], command[2])
+			elif(n_args == 1):
+				function_snp(command[1], None)
+				warning(-8, "Snp defaulted to top='all'")
+			else:
+				warning(-7, "Syntax: snp <modelname> <rank_positions=[shows all]>")
+
 		elif(command[0].lower() == "massfit"):
-			function_massfit(command[1], command[2], command[3], command[4], THREADED)
+			if(n_args == 4):
+				function_massfit(command[1], command[2], command[3], command[4], THREADED)
+			elif(n_args == 3):
+				function_massfit(command[1], command[2], command[3], "-1", THREADED)
+				warning(-8, "Massfit defaulted cpu=-1")
+			elif(n_args == 2):
+				function_massfit(command[1], command[2], "0.9", "-1", THREADED)
+				warning(-8, "Massfit defaulted cpu=-1 and train%=0.9")
+			elif(n_args == 1):
+				function_massfit(command[1], "1000", "0.9", "-1", THREADED)
+				warning(-8, "Massfit defaulted cpu=-1 and train%=0.9 and n_runs=1000")
+			else:
+				warning(-7, "Syntax: massfit <modelname> <n_runs=1000> <train%=0.9> <cpu=-1>")
+
 		elif(command[0].lower() == "unload"):
-			function_unload(command[1])
+			if(n_args == 1):
+				function_unload(command[1])
+			else:
+				warning(-7, "Syntax: unload <modelname>")
+
 		elif(command[0].lower() == "cross"):
-			function_cross(command[1], command[2], THREADED)
+			if(n_args == 3):
+				function_cross(command[1], command[2], command[3], THREADED)
+			elif(n_args == 2):
+				function_cross(command[1], command[2], None, THREADED)
+				warning(-8, "Cross defaulted top_rank=all")
+			else:
+				warning(-7, "Syntax: cross <basemodel> <model|list_of_models>")
+
+		else:
+			warning(-6, f"Command {command[0]} not found")
+			return
 
 # Shows all models created
 def function_models():
@@ -145,12 +243,12 @@ def function_help():
 	print(__format_string("GetClasses: \t<modelname>\t\t\t\tPrints all class values in target class"))
 	print(__format_string("OVATransform: \t<modelname>\t<classname>\t\t\tPerforms a One-vs-All transformation in model data"))
 	print(__format_string("Holdout: \t<modelname>\t<train%=0.9>\t<stratify=y/n>\t\tPerforms holdout in separating train\% of the dataset and stratifying or not"))
-	print(__format_string("Fit: \t<modelname>\t<cpu_amount>\t\t\tTrains the model. Cpu=-1 uses all processor cores"))
-	print(__format_string("Massfit: \t<modelname>\t<n_runs>\t<train%=0.9>\t<cpu_amount>\tDoes n FIT operations"))
+	print(__format_string("Fit: \t<modelname>\t<cpu_amount=-1>\t\t\tTrains the model. Cpu=-1 uses all processor cores"))
+	print(__format_string("Massfit: \t<modelname>\t<n_runs=1000>\t<train%=0.9>\t<cpu_amount=-1>\tDoes n FIT operations"))
 	print(__format_string("Score: \t<modelname>\t\t\t\tPrints Mean Precision and Recall scores"))
-	print(__format_string("Snp: \t<modelname>\t<n_elements>\t\t\tGets a ranked list of snps detected"))
+	print(__format_string("Snp: \t<modelname>\t<n_elements=[all]>\t\t\tGets a ranked list of snps detected"))
 	print(__format_string("Unload: \t<modelname>\t\t\t\tUnloads memory for model classifier. Keeps snps."))
-	print(__format_string("Cross: \t<modelname>\t<model|models_list>\t\t\tCross references SNPs of similar models to improve SNP score"))
+	print(__format_string("Cross: \t<modelname>\t<model|models_list>\t<top_rank=10>\t\tCross references SNPs of similar models to improve SNP score"))
 
 # Formats to table view
 def __format_string(text):
@@ -160,6 +258,14 @@ def __format_string(text):
 	for t in text:
 		out_string += "{:<15}".format(t)
 	return out_string
+
+# Checks if string can be converted to float
+def __isfloat(text):
+	try:
+		text = float(text)
+		return True
+	except ValueError:
+		return False
 
 # New Function
 def function_new(name, filename, THREADED):
@@ -320,11 +426,12 @@ def function_score(name):
 # SNP function
 def function_snp(name, n):
 	if(__model_exist(name)):
-		try:
-			n = int(n)
-		except ValueError:
-			warning(-5, "n_elements must be int")
-			return
+		if(n != None):
+			try:
+				n = int(n)
+			except ValueError:
+				warning(-5, "n_elements must be int")
+				return
 
 		Model.models[name].calculate_top_snps()
 		aux = Model.models[name].get_top_snps(top=n)
@@ -364,11 +471,18 @@ def function_unload(name):
 		warning(-2, "Model not found")	
 
 # Cross function - Recursive
-def function_cross(name, model, THREADED):
+def function_cross(name, model, top, THREADED):
 	if(not THREADED):
 		if(not __model_exist(name)):
 			warning(-2, f"Model {name} not found. Cross check has stopped")
 			return
+
+		if(top != None):
+			try:
+				top = int(top)
+			except ValueError:
+				warning(-4, f"Top value has to be an integer")
+				return
 
 
 		# Single model
@@ -391,24 +505,43 @@ def function_cross(name, model, THREADED):
 			scores = Model.models[name].cross_check_models([Model.models[x] for x in new_string])
 
 		print(Fore.CYAN + "Crossing process finished!")
-		for element in scores:
-			print(element)
+
+		if(top == None):
+			for element in scores:
+				print(element)
+		else:
+			for element in scores[:top]:
+				print(element)
 
 	else:
 		print(Fore.CYAN + "Crossing models in Threaded mode. Please do not modify the models until the process is finished!")
 		sleep(0.01)
 		Thread(target=function_cross, args=(name, model, False)).start()
 
+# Welcome Message
+def welcome():
+	print(Fore.GREEN + "EnGENE-Terminal " + version)
+	print(Fore.GREEN + "Genetic Enhancement Engine")
+	print(Fore.GREEN + "by Henrique Frajacomo\n")
 
 version = "v1.0"
-QUIT = False
 
-try:
-	while(not QUIT):
-		print("\nEnGENE-Terminal> ", end="")
-		data = parse(input())
-		command_handler(data)
+'''
+Main 
+'''
+def main():
+	try:
+		welcome()
+		while(True):
+			print("\nEnGENE-Terminal> ", end="")
+			data = parse(input())
+			command_handler(data)
 
-except KeyboardInterrupt:
-	QUIT = True
-	exit()
+	except KeyboardInterrupt:
+		exit()
+
+
+
+if(__name__ == '__main__'):
+	main()
+
