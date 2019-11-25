@@ -206,7 +206,14 @@ class Model:
 		n_trees = (self.feature_range[1] - self.feature_range[0] + 1)%20 + 10
 
 		self.classifier = RandomForestClassifier(n_estimators=n_trees, n_jobs=cpu)
-		self.classifier.fit(self.X_train, self.y_train)
+		
+		# Fix for empty list pop inside sklearn
+		while(True):
+			try:
+				self.classifier.fit(self.X_train, self.y_train)
+				break
+			except IndexError:
+				pass
 
 		# Makes prediction
 		y_pred = self.classifier.predict(self.X_test)
@@ -271,7 +278,7 @@ class Model:
 			if(errcode == 0):
 				warning(8, "Too many classes in target column. Try running an OVATransform")
 				return 0
-				
+
 			self.fit(cpu)
 		print("Training of model " + self.modelname + " is done!")
 

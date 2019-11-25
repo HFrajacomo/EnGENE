@@ -659,6 +659,9 @@ def function_train(model, THREADED):
 				th.join()
 
 			scores = Model.models[model[0]].cross_check_models([Model.models[x] for x in model])
+			print("\n\n######## Results #########")
+			print('{:<15}'.format("SNP") + '{:>10}'.format("Score"))
+			print("-------------------------")
 			for element in scores:
 				print('{:<15}'.format(element[0] + ": ") + '{:>10}'.format(str(element[1])))
 	
@@ -672,7 +675,9 @@ def function_train(model, THREADED):
 			print(f'Mean Recall: {Model.models[model].get_mean_recall()}')
 			Model.models[model].calculate_top_snps()
 
-			print()
+			print("\n\n###### Results #######")
+			print('{:<15}'.format("SNP") + '{:>5}'.format("Score"))
+			print("-------------------------")
 			for element in Model.models[model].get_top_snps():
 				print('{:<15}'.format(element[0] + ": ") + '{:>5}'.format(str(element[1])))
 
