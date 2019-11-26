@@ -47,6 +47,7 @@ The model class is the main class in EnGENE. It's used to store SNP data, proces
 
 **Model.create_dummies()**: Binarifies all columns in feature space inplace.
 Lets's suppose the feature space is from column 1 to 3
+
 | ID | SNP1 | SNP2 | SNP3 | Result |
 |--|--| --| --| --|
 | 1 | A | C | T | class_1 |
@@ -82,6 +83,7 @@ It will become:
 **Model.one_vs_all_transform([string] target_class):** Applies the one_vs_all problem transformation to data inplace.
 
 Before:
+
 | ID | SNP1 | SNP2 | SNP3 | Result |
 |--|--| --| --| --|
 | 1 | A | C | T | class_1 |
@@ -89,6 +91,7 @@ Before:
 | 3 | A | T | T | class_3 |
 
 After running Model.one_vs_all_transform("class_2"):
+
 | ID | SNP1 | SNP2 | SNP3 | Result |
 |--|--| --| --| --|
 | 1 | A | C | T | Other |
