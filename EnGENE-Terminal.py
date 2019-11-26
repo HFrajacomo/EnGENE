@@ -1,12 +1,15 @@
 __author__ = "Henrique Frajacomo"
 
-from EnGENE import Model
-from ErrorHandling import *
+import sys
 from threading import Thread, Lock
 from datetime import datetime
 from colorama import init, Fore
 import os
 from time import sleep
+
+sys.path.append('EnGENE\\')
+from EnGENE import Model
+from ErrorHandling import *
 
 init(autoreset=True) # Starts Colorama
 
@@ -294,7 +297,7 @@ def function_help():
 	print(__format_string("Cross: \t<modelname>\t<model|models_list>\t<top_rank=10>\t\tCross references SNPs of similar models to improve SNP score"))
 
 	print()
-	print(Fore.RED + "!!!!!! SIMPLIFIED COMMANDS !!!!!!")
+	print(Fore.RED + "!!!!!! SIMPLIFIED COMMANDS !!!!!!\n")
 	# Load
 	print(Fore.CYAN + "Load\n")
 	print("Description: Loads and prepares a model based on an input dataset and user-given information")
