@@ -14,6 +14,7 @@ import os
 
 class Model:
 	models = {}
+	verbose = True
 	# Takes filename to build DataFrame
 	def __init__(self, modelname, filename):
 		# Dataset Atributes
@@ -276,7 +277,9 @@ class Model:
 	# Runs Model.holdout() and Model.fit() n times
 	def mass_fit(self, n, train_s=0.9, stratify=True, cpu=-1):
 		for i in range(n):
-			progress(f'{i}/{n}')
+			if(Model.verbose):
+				progress(f'{i}/{n}')
+
 			errcode = self.holdout(train_s=train_s, stratify=stratify)
 
 			if(errcode == 0):

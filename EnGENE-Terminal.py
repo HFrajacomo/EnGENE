@@ -54,8 +54,7 @@ def parse(text):
 		return accumulator
 
 # Finds the correct command inputted by the user and handles it
-def command_handler(command):
-
+def command_handler(command):	
 	# Fix in command parsing for threaded function
 	if(type(command) == list and len(command) == 2 and command[1] == "&"):
 		command = command[0]
@@ -71,6 +70,10 @@ def command_handler(command):
 			exit()
 		elif(command.lower() == "clear" or command.lower() == "cls"):
 			os.system("cls" if os.name == 'nt' else 'clear')
+		elif(command.lower() == "verbose"):
+			Model.verbose = True
+		elif(command.lower() == "quiet"):
+			Model.verbose = False
 		elif(command.lower() == ""):
 			return
 		else:
@@ -278,6 +281,8 @@ def function_help():
 	print(Fore.RED + "Useful Commands")
 	print(__format_string("Models: \t\t\t\t\tShows all created models"))
 	print(__format_string("Help: \t\t\t\t\tShows this help message"))
+	print(__format_string("Quiet: \t\t\t\t\tIgnores progress messages in model training"))
+	print(__format_string("Verbose: \t\t\t\t\tShows progress messages in model training"))
 	print(__format_string("Quit: \t\t\t\t\tQuits EnGENE-Terminal"))
 	print(__format_string("Clear: \t\t\t\t\tClears terminal screen"))
 	print(__format_string("Print: \t<modelname>\t\t\t\tRough visualization of model data"))
@@ -291,8 +296,7 @@ def function_help():
 
 	print(Fore.RED + "Model Configuration")
 	print(__format_string("Drop: \t<modelname>\t<col_index|index_list>\t\t\tDrops the columns specified"))
-	print(__format_str
-		ing("Select: \t<modelname>\t<start>\t<end>\t\tSets columns to be considered features in classifier"))
+	print(__format_string("Select: \t<modelname>\t<start>\t<end>\t\tSets columns to be considered features in classifier"))
 	print(__format_string("Target: \t<modelname>\t<col_name|col_index>\t\t\tSets the column to be predicted by the classifier"))
 
 	print(Fore.RED + "Model Transformations")
@@ -716,6 +720,7 @@ warnings.warn = warn
 
 
 version = "v1.0"
+verbose = True
 
 '''
 Main 
