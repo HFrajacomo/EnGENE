@@ -291,7 +291,8 @@ def function_help():
 
 	print(Fore.RED + "Model Configuration")
 	print(__format_string("Drop: \t<modelname>\t<col_index|index_list>\t\t\tDrops the columns specified"))
-	print(__format_string("Select: \t<modelname>\t<start>\t<end>\t\tSets columns to be considered features in classifier"))
+	print(__format_str
+		ing("Select: \t<modelname>\t<start>\t<end>\t\tSets columns to be considered features in classifier"))
 	print(__format_string("Target: \t<modelname>\t<col_name|col_index>\t\t\tSets the column to be predicted by the classifier"))
 
 	print(Fore.RED + "Model Transformations")
@@ -398,6 +399,7 @@ def function_select(name, start, end):
 	try:
 		start = int(start)
 		end = int(end)
+
 	except ValueError:
 		warning(-3, "Start and End values must be int")
 		return
