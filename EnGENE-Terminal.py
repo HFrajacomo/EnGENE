@@ -23,6 +23,11 @@ def parse(text):
 	IN_QUOTES = False
 	IN_BRACKETS = False
 	IN_WS = False
+	AFTER_FIRST_CHAR = False
+
+	if(len(text)>0):
+		if(text[0] == " "):
+			IN_WS = True
 
 	for el in text:
 		if(IN_WS and el==" " and not IN_QUOTES):
@@ -41,6 +46,7 @@ def parse(text):
 			IN_WS = False
 
 		accumulator += el
+		AFTER_FIRST_CHAR = True
 
 	if(len(accumulator.split(" ")) > 1):
 		return accumulator.split(" ")
@@ -49,6 +55,7 @@ def parse(text):
 
 # Finds the correct command inputted by the user and handles it
 def command_handler(command):
+
 	# Fix in command parsing for threaded function
 	if(type(command) == list and len(command) == 2 and command[1] == "&"):
 		command = command[0]
@@ -252,9 +259,13 @@ def function_models():
 	if(Model.models == {}):
 		print("No models were created yet")
 	else:
-		for mod in Model.models.values():
-			print()
-			print(mod)
+		try:
+			for mod in Model.models.values():
+				print()
+				print(mod)
+		except RuntimeError:
+			warning(-10, "Model is being updated. Try again later")
+			return
 		print()
 
 # Help function
@@ -322,7 +333,7 @@ def __format_string(text):
 	out_string = ""
 
 	for t in text:
-		out_string += "{:<15}".format(t)
+		out_string += "{:<20}".format(t)
 	return out_string
 
 # Checks if string can be converted to float
@@ -666,7 +677,7 @@ def function_train(model, THREADED):
 			print('{:<15}'.format("SNP") + '{:>10}'.format("Score"))
 			print("-------------------------")
 			for element in scores:
-				print('{:<15}'.format(element[0] + ": ") + '{:>10}'.format(str(element[1])))
+				print('{:<15}'.format(element[0] + ": ") + '{:>10}'.format('{0:.3f}'.format(element[1])))
 	
 		else:
 			if(not __model_exist(model)):
@@ -682,7 +693,7 @@ def function_train(model, THREADED):
 			print('{:<15}'.format("SNP") + '{:>5}'.format("Score"))
 			print("-------------------------")
 			for element in Model.models[model].get_top_snps():
-				print('{:<15}'.format(element[0] + ": ") + '{:>5}'.format(str(element[1])))
+				print('{:<15}'.format(element[0] + ": ") + '{:>5}'.format('{0:.3f}'.format(element[1])))
 
 	else:
 		Thread(target=function_train, args=(model, False)).start()					
@@ -693,6 +704,14 @@ def welcome():
 	print(Fore.GREEN + "EnGENE-Terminal " + version)
 	print(Fore.GREEN + "Genetic Enhancement Engine")
 	print(Fore.GREEN + "by Henrique Frajacomo\n")
+
+# Warning Supress function
+def warn(*args, **kwargs):
+    pass
+
+import warnings
+warnings.warn = warn
+
 
 version = "v1.0"
 
