@@ -586,19 +586,21 @@ def function_cross(name, model, top, THREADED):
 					return
 
 			scores = Model.models[name].cross_check_models([Model.models[x] for x in new_string])
+			
 
-		print(Fore.CYAN + "Crossing process finished!")
+		print("\n\n###### Results #######")
+		print('{:<15}'.format("SNP") + '{:>5}'.format("Score"))
+		print("-------------------------")
 
 		if(top == None):
 			for element in scores:
-				print(element)
+				print('{:<15}'.format(element[0] + ": ") + '{:>5}'.format('{0:.3f}'.format(element[1])))
+
 		else:
 			for element in scores[:top]:
-				print(element)
+				print('{:<15}'.format(element[0] + ": ") + '{:>5}'.format('{0:.3f}'.format(element[1])))
 
 	else:
-		print(Fore.CYAN + "Crossing models in Threaded mode. Please do not modify the models until the process is finished!")
-		sleep(0.01)
 		Thread(target=function_cross, args=(name, model, False)).start()
 
 # Print function
