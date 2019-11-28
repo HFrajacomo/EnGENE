@@ -8,6 +8,7 @@ import os
 from time import sleep
 
 sys.path.append('EnGENE\\')
+sys.path.append('EnGENE/')
 from EnGENE import Model
 from ErrorHandling import *
 
