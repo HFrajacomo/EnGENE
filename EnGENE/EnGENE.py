@@ -328,12 +328,10 @@ class Model:
 		if(self.top_snps == []):
 			self.calculate_top_snps()
 
-
 		# score[0] = SNP, [1] = avg(importance), [2] = appearance multiplier 
 		score = self.top_snps.copy()
 		for element in score:
 			element.append(1)
-
 
 		if(type(model) == Model):
 			if(model.top_snps == []):
@@ -383,6 +381,22 @@ class Model:
 
 	# Terminal print of Model class
 	def __repr__(self):
+		text = self.modelname + "\n"
+		text += self.__format_string("Filename: ") + f'{self.filename}\n'
+		text += self.__format_string("Target Feature: ") + f'{self.target_column}\n'
+		text += self.__format_string("Feature Range: ") + f'{self.feature_range}\n'
+		text += self.__format_string("Times Trained: ") + f'{self.times_fit}'
+
+		if(type(self.data) == pd.DataFrame):
+			text += "\n" + self.__format_string("Dataframe size: ") + f'{len(self.data)}x{len(self.data.columns)}'
+		if(type(self.X_train) == pd.DataFrame):
+			text += "\n" + self.__format_string("Holdout: ") + f'{len(self.X_train)}' + " instances in training set"
+		if(self.times_fit > 0):
+			text += "\n" + self.__format_string("Precision: ") + '{0:.5f}'.format(self.get_mean_precision())
+			text += "\n" + self.__format_string("Recall: ") + '{0:.5f}'.format(self.get_mean_recall())
+		return text
+
+	def __str__(self):
 		text = self.modelname + "\n"
 		text += self.__format_string("Filename: ") + f'{self.filename}\n'
 		text += self.__format_string("Target Feature: ") + f'{self.target_column}\n'

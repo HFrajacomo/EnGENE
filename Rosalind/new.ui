@@ -36,19 +36,6 @@
           <property name="frameShadow">
            <enum>QFrame::Raised</enum>
           </property>
-          <widget class="QTableWidget" name="info_table">
-           <property name="geometry">
-            <rect>
-             <x>0</x>
-             <y>30</y>
-             <width>501</width>
-             <height>141</height>
-            </rect>
-           </property>
-           <property name="editTriggers">
-            <set>QAbstractItemView::NoEditTriggers</set>
-           </property>
-          </widget>
           <widget class="QLabel" name="label_5">
            <property name="geometry">
             <rect>
@@ -578,6 +565,16 @@
             <number>1000</number>
            </property>
           </widget>
+          <widget class="QTextBrowser" name="textBrowser">
+           <property name="geometry">
+            <rect>
+             <x>0</x>
+             <y>40</y>
+             <width>501</width>
+             <height>131</height>
+            </rect>
+           </property>
+          </widget>
          </widget>
         </item>
        </layout>
@@ -612,6 +609,15 @@
         <widget class="QTableWidget" name="tableWidget">
          <property name="editTriggers">
           <set>QAbstractItemView::NoEditTriggers</set>
+         </property>
+         <property name="alternatingRowColors">
+          <bool>true</bool>
+         </property>
+         <property name="selectionMode">
+          <enum>QAbstractItemView::MultiSelection</enum>
+         </property>
+         <property name="selectionBehavior">
+          <enum>QAbstractItemView::SelectRows</enum>
          </property>
         </widget>
        </item>

@@ -1,3 +1,5 @@
+__author__ = "Henrique Frajacomo"
+
 import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
 from easygui import *
@@ -11,6 +13,13 @@ sys.path.append('Rosalind/')
 from EnGENE import Model
 from Window import Ui_MainWindow
 
+# Warning Supress function
+def warn(*args, **kwargs):
+    pass
+
+import warnings
+warnings.warn = warn
+
 # Setup GUI-Python integration
 def setup_pywin(Win):
 	Win.pushButton.clicked.connect(lambda:click_new(Win))
@@ -20,37 +29,60 @@ def setup_pywin(Win):
 	Win.tableWidget.setHorizontalHeaderLabels(["Model name", "Filename"])
 	Win.tableWidget.resizeColumnsToContents()
 	Win.tableWidget.resizeRowsToContents()
-
+	Win.tableWidget.itemSelectionChanged.connect(lambda: update_text_browser(Win, Win.tableWidget.selectedItems()))
 
 # New Button Function
 def click_new(Win):
 	if(Win.lineEdit.displayText() != "" and loaded_dataset != ""):
-		item = QtWidgets.QTableWidgetItem(Win.lineEdit.displayText())
-		item2 = QtWidgets.QTableWidgetItem(loaded_dataset)
-		ui.tableWidget.setRowCount(ui.tableWidget.rowCount()+1)
-		Win.tableWidget.setItem(ui.tableWidget.rowCount()-1,0, item)
-		Win.tableWidget.setItem(ui.tableWidget.rowCount()-1,1, item2)
+		if(not __model_exist(Win.lineEdit.displayText())):
+			if(os.name == 'nt'):
+				data_name = loaded_dataset.split("\\")[-1]
+			else:
+				data_name = loaded_dataset.split("/")[-1]	
 
-		## Add exception to already existant model
+			item = QtWidgets.QTableWidgetItem(Win.lineEdit.displayText())
+			item2 = QtWidgets.QTableWidgetItem(data_name)
+			ui.tableWidget.setRowCount(ui.tableWidget.rowCount()+1)
+			Win.tableWidget.setItem(ui.tableWidget.rowCount()-1,0, item)
+			Win.tableWidget.setItem(ui.tableWidget.rowCount()-1,1, item2)
+
+			Model(Win.lineEdit.displayText(), loaded_dataset)
+			update_text_browser(Win, item.text())
 
 
 # New function tool button
 def click_tool(Win):
 	global loaded_dataset
-	loaded_dataset = fileopenbox(title="Load dataset", filetypes=["*.csv"])
+	loaded_dataset = fileopenbox(title="Load dataset", filetypes=["*.csv"], default="*.csv")
 
 	if(loaded_dataset == None):
 		loaded_dataset = ""
-	else:
-		if(os.name == 'nt'):
-			loaded_dataset = loaded_dataset.split("\\")[-1]
-		else:
-			loaded_dataset = loaded_dataset.split("/")[-1]
 
 	Win.lineEdit_2.setText(loaded_dataset)
 
+# Checks if a model with name exists
+def __model_exist(name):
+	if(type(Model.models.get(name, False)) == Model):
+		return True
+	else:
+		return False
+
+# Updates Model Information screen
+def update_text_browser(Win, modelname):
+	global currently_selected_model
+
+	if(modelname == []):
+		return
+
+	if(type(modelname) == list):
+		modelname = modelname[-2].text()
+
+	Win.textBrowser.setText(str(Model.models[modelname]))
+	currently_selected_model = modelname
 
 loaded_dataset = ""
+version = "v1.0"
+currently_selected_model = ""
 
 if __name__ == "__main__":
     import sys
