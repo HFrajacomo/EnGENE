@@ -35,7 +35,13 @@ def setup_pywin(Win):
 	Win.spinBox_4.valueChanged.connect(spinbox_target_change)
 	Win.pushButton_2.clicked.connect(lambda: click_select(Win))
 	Win.pushButton_7.clicked.connect(lambda: click_target(Win))
-
+	Win.textBrowser.setFontPointSize(11)
+	Win.pushButton_3.clicked.connect(lambda: click_dummy(Win))
+	Win.spinBox_5.valueChanged.connect(spinbox_ova_change)
+	Win.pushButton_4.clicked.connect(lambda: click_ova(Win))
+	set_train_menu(Win)
+	Win.toolButton_2.menu().triggered.connect(change_percentage)
+	Win.pushButton_5.clicked.connect(lambda: click_train(Win))
 
 # New Button Function
 def click_new(Win):
@@ -92,24 +98,38 @@ def model_selection_trigger(Win, modelname):
 	else:
 		currently_selected_model = modelname
 
-	# Spinboxes
+	reset_spinboxes(Win)
+	update_text_browser(Win)
+
+# Re-set all spinbox values
+def reset_spinboxes(Win):
 	Win.spinBox_2.setMaximum(get_max_spinbox())
 	Win.spinBox_3.setMaximum(get_max_spinbox())
 	Win.spinBox_4.setMaximum(get_max_spinbox())
 	Win.spinBox_2.setValue(0)
 	Win.spinBox_3.setValue(0)
 	Win.spinBox_4.setValue(0)
+	Win.spinBox_5.setValue(0)
 	Win.lineEdit_3.setText("")
 	Win.lineEdit_4.setText("")
 	Win.lineEdit_5.setText("")	
+	Win.lineEdit_6.setText("")
 
-	update_text_browser(Win)
+	if(currently_selected_model != ""):
+		if(Model.models[currently_selected_model].target_column != None):
+			Win.spinBox_5.setMaximum(get_max_spinbox_class())
 
 # Gets maximum number of Select and Target Spinboxes
 def get_max_spinbox():
 	if(currently_selected_model == ""):
 		return 0
 	return len(Model.models[currently_selected_model].data.columns)-1
+
+# Gets maximum number of Select to OVA Spinbox
+def get_max_spinbox_class():
+	if(currently_selected_model == ""):
+		return 0
+	return len(Model.models[currently_selected_model].get_classes())-1	
 
 # Gets the header related to n element
 def get_spinbox_header(n):
@@ -126,6 +146,9 @@ def spinbox_start_change(q):
 def spinbox_target_change(q):
 	global ui
 	ui.lineEdit_5.setText(get_spinbox_header(q))
+def spinbox_ova_change(q):
+	global ui
+	ui.lineEdit_6.setText(Model.models[currently_selected_model].get_classes()[q])
 
 # Select button click
 def click_select(Win):
@@ -139,10 +162,60 @@ def click_target(Win):
 		Model.models[currently_selected_model].set_target_column(Win.spinBox_4.value())
 		update_text_browser(Win)
 
+# Dummification button click
+def click_dummy(Win):
+	if(currently_selected_model != ""):
+		if(not Model.models[currently_selected_model].binary_feature_space and Model.models[currently_selected_model].target_column != None):
+			Model.models[currently_selected_model].create_dummies()
+			update_text_browser(Win)
+			reset_spinboxes(Win)
+
+# OVA button click
+def click_ova(Win):
+	if(currently_selected_model != ""):
+		if(not Model.models[currently_selected_model].binary_target_space):
+			Model.models[currently_selected_model].one_vs_all_transform(Win.lineEdit_6.text())
+			update_text_browser(Win)
+			reset_spinboxes(Win)
+
+# Changes percentage of training
+def change_percentage(q):
+	global ui
+	ui.toolButton_2.setText(q.text())		
+
+# Creates Train Percentage menu
+def set_train_menu(Win):
+	menu = QtWidgets.QMenu()
+
+	for i in range(1, 10):
+		act = menu.addAction(str(i*10) + "%")
+	menu.setDefaultAction(act)
+	Win.toolButton_2.setText("90%")
+	Win.toolButton_2.setMenu(menu)
+
+# Train button click
+def click_train(Win):
+	if(currently_selected_model != ""):
+		md = currently_selected_model
+
+		if(Model.models[md].binary_feature_space and Model.models[md].binary_target_space):
+			iterations = int(Win.spinBox.text())
+			percentage = int(Win.toolButton_2.text()[:-1])/100
+			strat = Win.radioButton.isChecked()
+
+			for i in range(0, iterations):
+				Model.models[md].holdout(train_s=percentage, stratify=strat)
+				Model.models[md].fit()
+
+				if(currently_selected_model == md):
+					update_text_browser(Win)
+
+
 loaded_dataset = ""
 version = "v1.0"
 currently_selected_model = ""
 all_selected_models = []
+Model.GUI = True
 
 if __name__ == "__main__":
     import sys

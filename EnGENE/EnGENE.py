@@ -31,6 +31,9 @@ class Model:
 		self.target_column = None
 		self.target_index = None
 		self.feature_range = None
+
+		self.binary_feature_space = False
+		self.binary_target_space = False
 		
 		# Classifier Atributes
 		self.X_train = None
@@ -62,6 +65,7 @@ class Model:
 			else:
 				if(not self.GUI):
 					warning(1, "Column name doesn't exist")
+					return
 
 		elif(type(indicator) == int):
 			if(abs(indicator) < len(self.data.columns)):
@@ -70,11 +74,14 @@ class Model:
 			else:
 				if(not self.GUI):
 					warning(1, "Column index is out of range")
+					return
 
 		else:
 			if(not self.GUI):
 				warning(1, f"Type {type(indicator)} is not accepted. Try string or int.")
+				return
 
+		self.get_classes()
 
 	# Returns all distinct classes in Model.target_column
 	def get_classes(self):
@@ -90,6 +97,11 @@ class Model:
 			if(item not in class_names):
 				class_names.append(self.data[self.target_column][i])
 
+		if(len(class_names) != 2):
+			self.binary_target_space = False
+		else:
+			self.binary_target_space = True
+
 		return class_names
 
 	# Changes all classes except the target to "Other"
@@ -99,17 +111,44 @@ class Model:
 				warning(2, "Target class hasn't been set yet")
 			return 0
 
+		if(target_class not in self.get_classes()):
+			return -1
+
 		for i in range(len(self.data[self.target_column])):
-			if(self.data.iat[i, self.target_index] != target_class):
-				self.data.iat[i, self.target_index] = "Other" 
+			#if(self.data.iat[i, self.target_index] != target_class):
+				#self.data.iat[i, self.target_index] = "Other" 
+			if(self.data[self.target_column][i] != target_class):
+				self.data[self.target_column][i] = "Other" 
+
+		self.binary_target_space = True
 
 	# Sets what features are considered features
 	def set_feature_range(self, start, end):
 		if(start >= 0 and end >= 0 and start < len(self.data.columns) and end < len(self.data.columns)):
 			self.feature_range = [start, end]
+
+			# Look for binary feature space
+			self.set_feature_range_binarity()
+
 		else:
 			if(not self.GUI):
 				warning(3, "Invalid start or end position to feature range")
+
+	# Identifies feature space as binary or not
+	def set_feature_range_binarity(self):
+		for i in range(self.feature_range[0], self.feature_range[1]):
+			diff_values = []
+
+			for j in range(0, len(self.data)):
+				element = self.data[self.data.columns[i]][j]
+				if(element not in diff_values):
+					diff_values.append(element)
+				if(len(diff_values) > 2):
+					self.binary_feature_space = False
+					return False
+
+			self.binary_feature_space = True
+			return True
 
 	# Transform categorical features to a set of binary ones
 	def create_dummies(self):
@@ -134,6 +173,8 @@ class Model:
 
 		self.feature_range[0] += (original_size - self.feature_range[1]) - 1
 		self.feature_range[1] = len(cols)-2
+
+		self.binary_feature_space = True
 
 	# Drops unnecessary columns
 	def destroy_column(self, column):
@@ -310,7 +351,8 @@ class Model:
 				if(not self.GUI):
 					warning(10, "Massfit failed because of accumulated warnings")
 				return
-		print("Training of model " + self.modelname + " is done!")
+		if(not self.GUI):
+			print("Training of model " + self.modelname + " is done!")
 
 	# Cross checks important SNPs on similar data models
 	'''
@@ -407,6 +449,12 @@ class Model:
 			text += "\n" + self.__format_string("Dataframe size: ") + f'{len(self.data)}x{len(self.data.columns)}'
 		if(type(self.X_train) == pd.DataFrame):
 			text += "\n" + self.__format_string("Holdout: ") + f'{len(self.X_train)}' + " instances in training set"
+		else:
+			if(not self.binary_feature_space):
+				text += "\n" + self.__format_string("[FEATURE SPACE IS NOT BINARY]")			
+			if(not self.binary_target_space):
+				text += "\n" + self.__format_string("[PROBLEM SPACE IS NOT BINARY]")							
+
 		if(self.times_fit > 0):
 			text += "\n" + self.__format_string("Precision: ") + '{0:.5f}'.format(self.get_mean_precision())
 			text += "\n" + self.__format_string("Recall: ") + '{0:.5f}'.format(self.get_mean_recall())
