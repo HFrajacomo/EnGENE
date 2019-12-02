@@ -34,6 +34,7 @@ def setup_pywin(Win):
 	Win.spinBox_3.valueChanged.connect(spinbox_start_change)
 	Win.spinBox_4.valueChanged.connect(spinbox_target_change)
 	Win.pushButton_2.clicked.connect(lambda: click_select(Win))
+	Win.pushButton_7.clicked.connect(lambda: click_target(Win))
 
 
 # New Button Function
@@ -132,6 +133,11 @@ def click_select(Win):
 		Model.models[currently_selected_model].set_feature_range(Win.spinBox_3.value(), Win.spinBox_2.value())
 		update_text_browser(Win)
 
+# Target button click
+def click_target(Win):
+	if(currently_selected_model != ""):
+		Model.models[currently_selected_model].set_target_column(Win.spinBox_4.value())
+		update_text_browser(Win)
 
 loaded_dataset = ""
 version = "v1.0"
