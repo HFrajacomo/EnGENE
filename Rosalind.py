@@ -79,6 +79,31 @@ def update_text_browser(Win, modelname):
 
 	Win.textBrowser.setText(str(Model.models[modelname]))
 	currently_selected_model = modelname
+	build_menu(Win, Model.models[modelname].data.columns, 0)
+
+
+# Builds a menu out of list of options
+# n is the code of the QToolButton
+def build_menu(Win, l, n):
+	menu = QtWidgets.QMenu()
+	menu2 = QtWidgets.QMenu()
+
+	for e in l:
+		menu.addAction(e)
+		menu2.addAction(e)
+
+	if(n == 0):
+		Win.frange_button1.setMenu(menu)
+		Win.frange_button1.menu().triggered.connect(set_frange1_text)
+		Win.frange_button2.setMenu(menu2)
+		Win.frange_button2.menu().triggered.connect(set_frange2_text)			
+
+def set_frange1_text(q):
+	global ui
+	ui.frange_button1.setText(q.text())
+def set_frange2_text(q):
+	global ui
+	ui.frange_button2.setText(q.text())
 
 loaded_dataset = ""
 version = "v1.0"
