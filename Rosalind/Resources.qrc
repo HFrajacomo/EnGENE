@@ -1,0 +1,14 @@
+<RCC>
+  <qresource prefix="Images">
+    <file>Images/Add_button.png</file>
+    <file>Images/Cross_button.png</file>
+    <file>Images/Delete_button.png</file>
+    <file>Images/Dummies_button.png</file>
+    <file>Images/Massfit_button.png</file>
+    <file>Images/OVA_button.png</file>
+    <file>Images/Select_button.png</file>
+    <file>Images/Target_button.png</file>
+    <file>Images/Train_button.png</file>
+    <file>Images/Unload_button.png</file>
+  </qresource>
+</RCC>

@@ -15,6 +15,7 @@ import os
 class Model:
 	models = {}
 	verbose = True
+	GUI = False
 	# Takes filename to build DataFrame
 	def __init__(self, modelname, filename):
 		# Dataset Atributes
@@ -59,23 +60,27 @@ class Model:
 						break
 
 			else:
-				warning(1, "Column name doesn't exist")
+				if(not self.GUI):
+					warning(1, "Column name doesn't exist")
 
 		elif(type(indicator) == int):
 			if(abs(indicator) < len(self.data.columns)):
 				self.target_column = self.data.columns[indicator]
 				self.target_index = indicator
 			else:
-				warning(1, "Column index is out of range")
+				if(not self.GUI):
+					warning(1, "Column index is out of range")
 
 		else:
-			warning(1, f"Type {type(indicator)} is not accepted. Try string or int.")
+			if(not self.GUI):
+				warning(1, f"Type {type(indicator)} is not accepted. Try string or int.")
 
 
 	# Returns all distinct classes in Model.target_column
 	def get_classes(self):
 		if(self.target_column == None):
-			warning(2, "Target class hasn't been set yet")
+			if(not self.GUI):
+				warning(2, "Target class hasn't been set yet")
 			return
 
 		class_names = []
@@ -90,7 +95,8 @@ class Model:
 	# Changes all classes except the target to "Other"
 	def one_vs_all_transform(self, target_class):
 		if(self.target_column == None):
-			warning(2, "Target class hasn't been set yet")
+			if(not self.GUI):
+				warning(2, "Target class hasn't been set yet")
 			return 0
 
 		for i in range(len(self.data[self.target_column])):
@@ -102,12 +108,14 @@ class Model:
 		if(start >= 0 and end >= 0 and start < len(self.data.columns) and end < len(self.data.columns)):
 			self.feature_range = [start, end]
 		else:
-			warning(3, "Invalid start or end position to feature range")
+			if(not self.GUI):
+				warning(3, "Invalid start or end position to feature range")
 
 	# Transform categorical features to a set of binary ones
 	def create_dummies(self):
 		if(self.feature_range == None):
-			warning(4, "Feature range hasn't been set yet")
+			if(not self.GUI):
+				warning(4, "Feature range hasn't been set yet")
 			return 0
 
 		original_size = len(self.data.columns)-1
@@ -147,7 +155,8 @@ class Model:
 			return dropped_names
 
 		else:
-			error(1, "Argument must be int, list")
+			if(not self.GUI):
+				warning(1, "Argument must be int, list")
 
 	# Auto-fix feature_range after deletion
 	def __reindex(self, num, l=[]):
@@ -166,7 +175,8 @@ class Model:
 	# Returns all columns outside feature_range
 	def print_non_features(self):
 		if(self.feature_range == None):
-			warning(4, "Feature range hasn't been set yet")
+			if(not self.GUI):
+				warning(4, "Feature range hasn't been set yet")
 			return
 
 		aux = []
@@ -182,12 +192,14 @@ class Model:
 	# Separates data in holdout mode
 	def holdout(self, train_s=0.9, stratify=True):
 		if(self.feature_range == None):
-			warning(4, "Feature range hasn't been set yet")
+			if(not self.GUI):
+				warning(4, "Feature range hasn't been set yet")
 			return 0
 
 		# Check if data is binary
 		if(len(self.get_classes()) != 2):
-			warning(7, "Target feature is not binary. Try Model.one_vs_all_transform()")
+			if(not self.GUI):
+				warning(7, "Target feature is not binary. Try Model.one_vs_all_transform()")
 			return 0
 
 		X = self.data[self.data.columns[self.feature_range[0]: self.feature_range[1]+1]]
@@ -201,7 +213,8 @@ class Model:
 	# Trains the RandomForest model.
 	def fit(self, cpu=-1):
 		if(type(self.X_train) != pd.DataFrame):
-			warning(2, "No data to fit. Use Model.holdout() before fitting data")
+			if(not self.GUI):
+				warning(2, "No data to fit. Use Model.holdout() before fitting data")
 
 		# 10 + SNP%20 trees in the forest
 		n_trees = (self.feature_range[1] - self.feature_range[0] + 1)%20 + 10
@@ -215,7 +228,8 @@ class Model:
 					self.classifier.fit(self.X_train, self.y_train)
 					break
 				except ValueError:
-					warning(9, "Feature space isn't binary. Try Model.create_dummies() and Model.holdout() before fitting")
+					if(not self.GUI):
+						warning(9, "Feature space isn't binary. Try Model.create_dummies() and Model.holdout() before fitting")
 					return 0
 			except IndexError:
 				pass
@@ -240,7 +254,8 @@ class Model:
 	# Calculates the mean precision of all runs of fit made up to now
 	def get_mean_precision(self):
 		if(self.precision == 0):
-			warning(5, "No runs where made to analyze precision. Try doing Model.fit() before trying again")
+			if(not self.GUI):
+				warning(5, "No runs where made to analyze precision. Try doing Model.fit() before trying again")
 			return 0
 
 		return self.precision/self.times_fit
@@ -248,7 +263,8 @@ class Model:
 	# Calculates the mean precision of all runs of fit made up to now
 	def get_mean_recall(self):
 		if(self.recall == 0):
-			warning(5, "No runs where made to analyze recall. Try doing Model.fit() before trying again")
+			if(not self.GUI):
+				warning(5, "No runs where made to analyze recall. Try doing Model.fit() before trying again")
 			return 0
 
 		return self.recall/self.times_fit
@@ -258,7 +274,8 @@ class Model:
 		rank = []
 
 		if(self.importance == {}):
-			warning(6, "No ranking is being accumulated. Try Model.fit() before trying again")
+			if(not self.GUI):
+				warning(6, "No ranking is being accumulated. Try Model.fit() before trying again")
 
 		for e in self.importance.keys():
 			rank.append([e, self.importance[e]])
@@ -277,19 +294,21 @@ class Model:
 	# Runs Model.holdout() and Model.fit() n times
 	def mass_fit(self, n, train_s=0.9, stratify=True, cpu=-1):
 		for i in range(n):
-			if(Model.verbose):
+			if(Model.verbose or not Model.GUI):
 				progress(f'{i}/{n}')
 
 			errcode = self.holdout(train_s=train_s, stratify=stratify)
 
 			if(errcode == 0):
-				warning(8, "Too many classes in target column. Try running an OVATransform")
+				if(not self.GUI):
+					warning(8, "Too many classes in target column. Try running an OVATransform")
 				return 0
 
 			errcode = self.fit(cpu)
 
 			if(errcode == 0):
-				warning(10, "Massfit failed because of accumulated warnings")
+				if(not self.GUI):
+					warning(10, "Massfit failed because of accumulated warnings")
 				return
 		print("Training of model " + self.modelname + " is done!")
 
@@ -304,7 +323,8 @@ class Model:
 	# Takes a list of models to compare
 	def cross_check_models(self, model):
 		if(type(model) != Model and type(model) != list):
-			error(3, f"{type(model)} received on cross_check_models(). Try using a Model or list of models.")
+			if(not self.GUI):
+				error(3, f"{type(model)} received on cross_check_models(). Try using a Model or list of models.")
 		if(self.top_snps == []):
 			self.calculate_top_snps()
 
