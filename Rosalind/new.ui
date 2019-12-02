@@ -149,8 +149,8 @@
             <rect>
              <x>10</x>
              <y>350</y>
-             <width>241</width>
-             <height>111</height>
+             <width>231</width>
+             <height>137</height>
             </rect>
            </property>
            <property name="frameShape">
@@ -159,61 +159,126 @@
            <property name="frameShadow">
             <enum>QFrame::Raised</enum>
            </property>
-           <layout class="QGridLayout" name="gridLayout_5">
-            <item row="0" column="0" rowspan="2" colspan="2">
-             <widget class="QLabel" name="label_8">
-              <property name="styleSheet">
-               <string notr="true">font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
-              </property>
-              <property name="text">
-               <string>SNP Selection</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="1">
-             <widget class="QToolButton" name="frange_button1">
-              <property name="text">
-               <string>Start</string>
-              </property>
-              <property name="popupMode">
-               <enum>QToolButton::MenuButtonPopup</enum>
-              </property>
-              <property name="autoRaise">
-               <bool>false</bool>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="2">
-             <widget class="QToolButton" name="frange_button2">
-              <property name="text">
-               <string>End</string>
-              </property>
-              <property name="popupMode">
-               <enum>QToolButton::MenuButtonPopup</enum>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="0" colspan="3">
-             <widget class="QPushButton" name="pushButton_2">
-              <property name="enabled">
-               <bool>true</bool>
-              </property>
-              <property name="text">
-               <string>Select</string>
-              </property>
-              <property name="icon">
-               <iconset resource="Resources.qrc">
-                <normaloff>:/Images/Images/Select_button.png</normaloff>:/Images/Images/Select_button.png</iconset>
-              </property>
-              <property name="iconSize">
-               <size>
-                <width>32</width>
-                <height>32</height>
-               </size>
-              </property>
-             </widget>
-            </item>
-           </layout>
+           <widget class="QLabel" name="label_8">
+            <property name="geometry">
+             <rect>
+              <x>10</x>
+              <y>10</y>
+              <width>97</width>
+              <height>19</height>
+             </rect>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
+            </property>
+            <property name="text">
+             <string>SNP Selection</string>
+            </property>
+           </widget>
+           <widget class="QPushButton" name="pushButton_2">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="geometry">
+             <rect>
+              <x>10</x>
+              <y>87</y>
+              <width>221</width>
+              <height>40</height>
+             </rect>
+            </property>
+            <property name="text">
+             <string>Select</string>
+            </property>
+            <property name="icon">
+             <iconset resource="Resources.qrc">
+              <normaloff>:/Images/Images/Select_button.png</normaloff>:/Images/Images/Select_button.png</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>32</width>
+              <height>32</height>
+             </size>
+            </property>
+           </widget>
+           <widget class="QSpinBox" name="spinBox_2">
+            <property name="geometry">
+             <rect>
+              <x>50</x>
+              <y>60</y>
+              <width>51</width>
+              <height>20</height>
+             </rect>
+            </property>
+            <property name="maximum">
+             <number>0</number>
+            </property>
+           </widget>
+           <widget class="QSpinBox" name="spinBox_3">
+            <property name="geometry">
+             <rect>
+              <x>50</x>
+              <y>40</y>
+              <width>51</width>
+              <height>20</height>
+             </rect>
+            </property>
+            <property name="maximum">
+             <number>0</number>
+            </property>
+           </widget>
+           <widget class="QLineEdit" name="lineEdit_3">
+            <property name="geometry">
+             <rect>
+              <x>110</x>
+              <y>40</y>
+              <width>113</width>
+              <height>20</height>
+             </rect>
+            </property>
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+           </widget>
+           <widget class="QLineEdit" name="lineEdit_4">
+            <property name="geometry">
+             <rect>
+              <x>110</x>
+              <y>60</y>
+              <width>113</width>
+              <height>20</height>
+             </rect>
+            </property>
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+           </widget>
+           <widget class="QLabel" name="label_14">
+            <property name="geometry">
+             <rect>
+              <x>10</x>
+              <y>44</y>
+              <width>47</width>
+              <height>13</height>
+             </rect>
+            </property>
+            <property name="text">
+             <string>Start:</string>
+            </property>
+           </widget>
+           <widget class="QLabel" name="label_15">
+            <property name="geometry">
+             <rect>
+              <x>10</x>
+              <y>64</y>
+              <width>47</width>
+              <height>13</height>
+             </rect>
+            </property>
+            <property name="text">
+             <string>End:</string>
+            </property>
+           </widget>
           </widget>
           <widget class="QFrame" name="frame_5">
            <property name="geometry">
@@ -315,9 +380,9 @@
            <property name="geometry">
             <rect>
              <x>10</x>
-             <y>590</y>
+             <y>600</y>
              <width>231</width>
-             <height>101</height>
+             <height>91</height>
             </rect>
            </property>
            <property name="frameShape">
@@ -327,16 +392,6 @@
             <enum>QFrame::Raised</enum>
            </property>
            <layout class="QGridLayout" name="gridLayout_9">
-            <item row="0" column="0">
-             <widget class="QLabel" name="label_12">
-              <property name="styleSheet">
-               <string notr="true">font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
-              </property>
-              <property name="text">
-               <string>Training</string>
-              </property>
-             </widget>
-            </item>
             <item row="1" column="0">
              <widget class="QToolButton" name="toolButton_2">
               <property name="text">
@@ -357,6 +412,16 @@
               </property>
               <property name="checked">
                <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="0">
+             <widget class="QLabel" name="label_12">
+              <property name="styleSheet">
+               <string notr="true">font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
+              </property>
+              <property name="text">
+               <string>Training</string>
               </property>
              </widget>
             </item>
@@ -426,7 +491,7 @@
              <x>260</x>
              <y>350</y>
              <width>241</width>
-             <height>111</height>
+             <height>137</height>
             </rect>
            </property>
            <property name="frameShape">
@@ -435,51 +500,84 @@
            <property name="frameShadow">
             <enum>QFrame::Raised</enum>
            </property>
-           <layout class="QGridLayout" name="gridLayout_8">
-            <item row="0" column="0" rowspan="2" colspan="2">
-             <widget class="QLabel" name="label_9">
-              <property name="styleSheet">
-               <string notr="true">font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
-              </property>
-              <property name="text">
-               <string>Target Selection</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="1">
-             <widget class="QToolButton" name="target_toolbox">
-              <property name="text">
-               <string>Choose...</string>
-              </property>
-              <property name="popupMode">
-               <enum>QToolButton::MenuButtonPopup</enum>
-              </property>
-              <property name="autoRaise">
-               <bool>false</bool>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="0" colspan="2">
-             <widget class="QPushButton" name="pushButton_7">
-              <property name="enabled">
-               <bool>true</bool>
-              </property>
-              <property name="text">
-               <string>Target</string>
-              </property>
-              <property name="icon">
-               <iconset resource="Resources.qrc">
-                <normaloff>:/Images/Images/Target_button.png</normaloff>:/Images/Images/Target_button.png</iconset>
-              </property>
-              <property name="iconSize">
-               <size>
-                <width>32</width>
-                <height>32</height>
-               </size>
-              </property>
-             </widget>
-            </item>
-           </layout>
+           <widget class="QPushButton" name="pushButton_7">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="geometry">
+             <rect>
+              <x>10</x>
+              <y>87</y>
+              <width>221</width>
+              <height>40</height>
+             </rect>
+            </property>
+            <property name="text">
+             <string>Target</string>
+            </property>
+            <property name="icon">
+             <iconset resource="Resources.qrc">
+              <normaloff>:/Images/Images/Target_button.png</normaloff>:/Images/Images/Target_button.png</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>32</width>
+              <height>32</height>
+             </size>
+            </property>
+           </widget>
+           <widget class="QLabel" name="label_9">
+            <property name="geometry">
+             <rect>
+              <x>10</x>
+              <y>10</y>
+              <width>114</width>
+              <height>19</height>
+             </rect>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
+            </property>
+            <property name="text">
+             <string>Target Selection</string>
+            </property>
+           </widget>
+           <widget class="QLabel" name="label_16">
+            <property name="geometry">
+             <rect>
+              <x>10</x>
+              <y>61</y>
+              <width>33</width>
+              <height>16</height>
+             </rect>
+            </property>
+            <property name="text">
+             <string>Select:</string>
+            </property>
+           </widget>
+           <widget class="QSpinBox" name="spinBox_4">
+            <property name="geometry">
+             <rect>
+              <x>70</x>
+              <y>61</y>
+              <width>37</width>
+              <height>20</height>
+             </rect>
+            </property>
+            <property name="maximum">
+             <number>0</number>
+            </property>
+           </widget>
+           <widget class="QLineEdit" name="lineEdit_5">
+            <property name="geometry">
+             <rect>
+              <x>130</x>
+              <y>61</y>
+              <width>101</width>
+              <height>20</height>
+             </rect>
+            </property>
+           </widget>
           </widget>
           <widget class="QFrame" name="frame_10">
            <property name="geometry">
@@ -496,35 +594,45 @@
            <property name="frameShadow">
             <enum>QFrame::Raised</enum>
            </property>
-           <layout class="QGridLayout" name="gridLayout_10">
-            <item row="0" column="0">
-             <widget class="QLabel" name="label_13">
-              <property name="styleSheet">
-               <string notr="true">font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
-              </property>
-              <property name="text">
-               <string>Correlate Trained Models</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="0">
-             <widget class="QPushButton" name="pushButton_8">
-              <property name="text">
-               <string>Cross Models</string>
-              </property>
-              <property name="icon">
-               <iconset resource="Resources.qrc">
-                <normaloff>:/Images/Images/Cross_button.png</normaloff>:/Images/Images/Cross_button.png</iconset>
-              </property>
-              <property name="iconSize">
-               <size>
-                <width>32</width>
-                <height>32</height>
-               </size>
-              </property>
-             </widget>
-            </item>
-           </layout>
+           <widget class="QLabel" name="label_13">
+            <property name="geometry">
+             <rect>
+              <x>10</x>
+              <y>24</y>
+              <width>177</width>
+              <height>19</height>
+             </rect>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
+            </property>
+            <property name="text">
+             <string>Correlate Trained Models</string>
+            </property>
+           </widget>
+           <widget class="QPushButton" name="pushButton_8">
+            <property name="geometry">
+             <rect>
+              <x>10</x>
+              <y>101</y>
+              <width>221</width>
+              <height>40</height>
+             </rect>
+            </property>
+            <property name="text">
+             <string>Cross Models</string>
+            </property>
+            <property name="icon">
+             <iconset resource="Resources.qrc">
+              <normaloff>:/Images/Images/Cross_button.png</normaloff>:/Images/Images/Cross_button.png</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>32</width>
+              <height>32</height>
+             </size>
+            </property>
+           </widget>
           </widget>
           <widget class="QPushButton" name="pushButton_5">
            <property name="geometry">

@@ -29,7 +29,12 @@ def setup_pywin(Win):
 	Win.tableWidget.setHorizontalHeaderLabels(["Model name", "Filename"])
 	Win.tableWidget.resizeColumnsToContents()
 	Win.tableWidget.resizeRowsToContents()
-	Win.tableWidget.itemSelectionChanged.connect(lambda: update_text_browser(Win, Win.tableWidget.selectedItems()))
+	Win.tableWidget.itemSelectionChanged.connect(lambda: model_selection_trigger(Win, Win.tableWidget.selectedItems()))
+	Win.spinBox_2.valueChanged.connect(spinbox_end_change)
+	Win.spinBox_3.valueChanged.connect(spinbox_start_change)
+	Win.spinBox_4.valueChanged.connect(spinbox_target_change)
+	Win.pushButton_2.clicked.connect(lambda: click_select(Win))
+
 
 # New Button Function
 def click_new(Win):
@@ -47,7 +52,7 @@ def click_new(Win):
 			Win.tableWidget.setItem(ui.tableWidget.rowCount()-1,1, item2)
 
 			Model(Win.lineEdit.displayText(), loaded_dataset)
-			update_text_browser(Win, item.text())
+			model_selection_trigger(Win, item.text())
 
 
 # New function tool button
@@ -68,46 +73,70 @@ def __model_exist(name):
 		return False
 
 # Updates Model Information screen
-def update_text_browser(Win, modelname):
+# Triggers for every model selection change
+def update_text_browser(Win):
+	Win.textBrowser.setText(str(Model.models[currently_selected_model]))
+
+def model_selection_trigger(Win, modelname):
 	global currently_selected_model
+	global all_selected_models
 
 	if(modelname == []):
 		return
 
-	if(type(modelname) == list):
-		modelname = modelname[-2].text()
+	elif(type(modelname) == list):
+		all_selected_models = [x for x in modelname[::2]]
+		currently_selected_model = modelname[-2].text()
 
-	Win.textBrowser.setText(str(Model.models[modelname]))
-	currently_selected_model = modelname
-	build_menu(Win, Model.models[modelname].data.columns, 0)
+	else:
+		currently_selected_model = modelname
 
+	# Spinboxes
+	Win.spinBox_2.setMaximum(get_max_spinbox())
+	Win.spinBox_3.setMaximum(get_max_spinbox())
+	Win.spinBox_4.setMaximum(get_max_spinbox())
+	Win.spinBox_2.setValue(0)
+	Win.spinBox_3.setValue(0)
+	Win.spinBox_4.setValue(0)
+	Win.lineEdit_3.setText("")
+	Win.lineEdit_4.setText("")
+	Win.lineEdit_5.setText("")	
 
-# Builds a menu out of list of options
-# n is the code of the QToolButton
-def build_menu(Win, l, n):
-	menu = QtWidgets.QMenu()
-	menu2 = QtWidgets.QMenu()
+	update_text_browser(Win)
 
-	for e in l:
-		menu.addAction(e)
-		menu2.addAction(e)
+# Gets maximum number of Select and Target Spinboxes
+def get_max_spinbox():
+	if(currently_selected_model == ""):
+		return 0
+	return len(Model.models[currently_selected_model].data.columns)-1
 
-	if(n == 0):
-		Win.frange_button1.setMenu(menu)
-		Win.frange_button1.menu().triggered.connect(set_frange1_text)
-		Win.frange_button2.setMenu(menu2)
-		Win.frange_button2.menu().triggered.connect(set_frange2_text)			
+# Gets the header related to n element
+def get_spinbox_header(n):
+	if(currently_selected_model == ''):
+		return ""
+	return Model.models[currently_selected_model].data.columns[n]
 
-def set_frange1_text(q):
+def spinbox_end_change(q):
 	global ui
-	ui.frange_button1.setText(q.text())
-def set_frange2_text(q):
+	ui.lineEdit_4.setText(get_spinbox_header(q))
+def spinbox_start_change(q):
 	global ui
-	ui.frange_button2.setText(q.text())
+	ui.lineEdit_3.setText(get_spinbox_header(q))
+def spinbox_target_change(q):
+	global ui
+	ui.lineEdit_5.setText(get_spinbox_header(q))
+
+# Select button click
+def click_select(Win):
+	if(currently_selected_model != ""):
+		Model.models[currently_selected_model].set_feature_range(Win.spinBox_3.value(), Win.spinBox_2.value())
+		update_text_browser(Win)
+
 
 loaded_dataset = ""
 version = "v1.0"
 currently_selected_model = ""
+all_selected_models = []
 
 if __name__ == "__main__":
     import sys
