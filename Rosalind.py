@@ -12,6 +12,7 @@ sys.path.append('Rosalind/')
 
 from EnGENE import Model
 from Window import Ui_MainWindow
+from Result import Result
 
 # Warning Supress function
 def warn(*args, **kwargs):
@@ -42,6 +43,7 @@ def setup_pywin(Win):
 	set_train_menu(Win)
 	Win.toolButton_2.menu().triggered.connect(change_percentage)
 	Win.pushButton_5.clicked.connect(lambda: click_train(Win))
+	Win.pushButton_6.clicked.connect(lambda: click_unload(Win))
 
 # New Button Function
 def click_new(Win):
@@ -82,8 +84,12 @@ def __model_exist(name):
 # Updates Model Information screen
 # Triggers for every model selection change
 def update_text_browser(Win):
-	Win.textBrowser.setText(str(Model.models[currently_selected_model]))
+	if(not __model_exist(currently_selected_model)):
+		Win.textBrowser.setText("")
+	else:
+		Win.textBrowser.setText(str(Model.models[currently_selected_model]))
 
+# Triggers every mouse selection in Model list
 def model_selection_trigger(Win, modelname):
 	global currently_selected_model
 	global all_selected_models
@@ -116,6 +122,8 @@ def reset_spinboxes(Win):
 	Win.lineEdit_6.setText("")
 
 	if(currently_selected_model != ""):
+		if(not __model_exist(currently_selected_model)):
+			return
 		if(Model.models[currently_selected_model].target_column != None):
 			Win.spinBox_5.setMaximum(get_max_spinbox_class())
 
@@ -123,11 +131,15 @@ def reset_spinboxes(Win):
 def get_max_spinbox():
 	if(currently_selected_model == ""):
 		return 0
+	if(not __model_exist(currently_selected_model)):
+		return 0
 	return len(Model.models[currently_selected_model].data.columns)-1
 
 # Gets maximum number of Select to OVA Spinbox
 def get_max_spinbox_class():
 	if(currently_selected_model == ""):
+		return 0
+	if(not __model_exist(currently_selected_model)):
 		return 0
 	return len(Model.models[currently_selected_model].get_classes())-1	
 
@@ -209,6 +221,34 @@ def click_train(Win):
 
 				if(currently_selected_model == md):
 					update_text_browser(Win)
+
+			Result(md, Model.models[md].get_top_snps(top=None), times_fit=Model.models[md].times_fit)
+
+# Unload button click
+def click_unload(Win):
+	global all_selected_models
+	global currently_selected_model
+
+	for md in all_selected_models:
+		Model.models.pop(md.text())
+
+	delete_list = []
+
+	for i in range(Win.tableWidget.rowCount()):
+		if(Win.tableWidget.item(i,0).text() in [x.text() for x in all_selected_models]):
+			delete_list.append(i)
+
+	delete_list = sorted(delete_list)
+	currently_selected_model = ""
+	all_selected_models = []
+	Win.textBrowser.setText("")
+
+	for ind in delete_list:
+		Win.tableWidget.removeRow(ind)
+		for i in range(len(delete_list)):
+			delete_list[i] -= 1
+
+
 
 
 loaded_dataset = ""
