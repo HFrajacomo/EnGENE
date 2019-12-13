@@ -45,6 +45,7 @@ class Model:
 		self.recall = 0
 		self.importance = {}
 		self.times_fit = 0
+		self.IS_TRAINING = False
 
 		# Top SNPs in model
 		self.top_snps = []
@@ -141,9 +142,9 @@ class Model:
 
 			for j in range(0, len(self.data)):
 				element = self.data[self.data.columns[i]][j]
-				if(element not in diff_values):
+				if(element not in diff_values and type(element) == int):
 					diff_values.append(element)
-				if(len(diff_values) > 2):
+				if(len(diff_values) != 2):
 					self.binary_feature_space = False
 					return False
 
@@ -243,6 +244,7 @@ class Model:
 				warning(7, "Target feature is not binary. Try Model.one_vs_all_transform()")
 			return 0
 
+		self.IS_TRAINING = True
 		X = self.data[self.data.columns[self.feature_range[0]: self.feature_range[1]+1]]
 		y = self.data[self.target_column]
 
@@ -250,6 +252,8 @@ class Model:
 			self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(X,y, train_size=train_s, test_size=None, stratify=y, random_state=int(datetime.now().timestamp()))
 		else:
 			self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(X,y, train_size=train_s, test_size=None, random_state=int(datetime.now().timestamp()))
+
+		self.IS_TRAINING = False
 
 	# Trains the RandomForest model.
 	def fit(self, cpu=-1):
@@ -260,6 +264,7 @@ class Model:
 		# 10 + SNP%20 trees in the forest
 		n_trees = (self.feature_range[1] - self.feature_range[0] + 1)%20 + 10
 
+		self.IS_TRAINING = True
 		self.classifier = RandomForestClassifier(n_estimators=n_trees, n_jobs=cpu)
 		
 		# Fix for empty list pop inside sklearn
@@ -291,6 +296,7 @@ class Model:
 		else:
 			self.importance[most_important_snp] = 1
 
+		self.IS_TRAINING = False
 
 	# Calculates the mean precision of all runs of fit made up to now
 	def get_mean_precision(self):

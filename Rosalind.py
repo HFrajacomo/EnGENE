@@ -2,6 +2,7 @@ __author__ = "Henrique Frajacomo"
 
 import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtCore import QThreadPool, QRunnable, pyqtSignal, pyqtSlot, QObject, QThread
 from easygui import *
 import os
 
@@ -21,234 +22,291 @@ def warn(*args, **kwargs):
 import warnings
 warnings.warn = warn
 
-# Setup GUI-Python integration
-def setup_pywin(Win):
-	Win.pushButton.clicked.connect(lambda:click_new(Win))
-	Win.toolButton.clicked.connect(lambda:click_tool(Win))
-	Win.tableWidget.setRowCount(0)
-	Win.tableWidget.setColumnCount(2)
-	Win.tableWidget.setHorizontalHeaderLabels(["Model name", "Filename"])
-	Win.tableWidget.resizeColumnsToContents()
-	Win.tableWidget.resizeRowsToContents()
-	Win.tableWidget.itemSelectionChanged.connect(lambda: model_selection_trigger(Win, Win.tableWidget.selectedItems()))
-	Win.spinBox_2.valueChanged.connect(spinbox_end_change)
-	Win.spinBox_3.valueChanged.connect(spinbox_start_change)
-	Win.spinBox_4.valueChanged.connect(spinbox_target_change)
-	Win.pushButton_2.clicked.connect(lambda: click_select(Win))
-	Win.pushButton_7.clicked.connect(lambda: click_target(Win))
-	Win.textBrowser.setFontPointSize(11)
-	Win.pushButton_3.clicked.connect(lambda: click_dummy(Win))
-	Win.spinBox_5.valueChanged.connect(spinbox_ova_change)
-	Win.pushButton_4.clicked.connect(lambda: click_ova(Win))
-	set_train_menu(Win)
-	Win.toolButton_2.menu().triggered.connect(change_percentage)
-	Win.pushButton_5.clicked.connect(lambda: click_train(Win))
-	Win.pushButton_6.clicked.connect(lambda: click_unload(Win))
 
-# New Button Function
-def click_new(Win):
-	if(Win.lineEdit.displayText() != "" and loaded_dataset != ""):
-		if(not __model_exist(Win.lineEdit.displayText())):
-			if(os.name == 'nt'):
-				data_name = loaded_dataset.split("\\")[-1]
-			else:
-				data_name = loaded_dataset.split("/")[-1]	
+class Win(QtWidgets.QMainWindow, Ui_MainWindow):
+	def __init__(self):
+		super(Win, self).__init__()
+		self.setupUi(self)
+		self.setup_pywin()
+		self.threads = QThreadPool()
 
-			item = QtWidgets.QTableWidgetItem(Win.lineEdit.displayText())
-			item2 = QtWidgets.QTableWidgetItem(data_name)
-			ui.tableWidget.setRowCount(ui.tableWidget.rowCount()+1)
-			Win.tableWidget.setItem(ui.tableWidget.rowCount()-1,0, item)
-			Win.tableWidget.setItem(ui.tableWidget.rowCount()-1,1, item2)
+	# Setup GUI-Python integration
+	def setup_pywin(self):
+		self.pushButton.clicked.connect(self.click_new)
+		self.toolButton.clicked.connect(self.click_tool)
+		self.tableWidget.setRowCount(0)
+		self.tableWidget.setColumnCount(2)
+		self.tableWidget.setHorizontalHeaderLabels(["Model name", "Filename"])
+		self.tableWidget.resizeColumnsToContents()
+		self.tableWidget.resizeRowsToContents()
+		self.tableWidget.itemSelectionChanged.connect(lambda:self.model_selection_trigger(self.tableWidget.selectedItems()))
+		self.spinBox_2.valueChanged.connect(self.spinbox_end_change)
+		self.spinBox_3.valueChanged.connect(self.spinbox_start_change)
+		self.spinBox_4.valueChanged.connect(self.spinbox_target_change)
+		self.pushButton_2.clicked.connect(self.click_select)
+		self.pushButton_7.clicked.connect(self.click_target)
+		self.textBrowser.setFontPointSize(11)
+		self.pushButton_3.clicked.connect(self.click_dummy)
+		self.spinBox_5.valueChanged.connect(self.spinbox_ova_change)
+		self.pushButton_4.clicked.connect(self.click_ova)
+		self.set_train_menu()
+		self.toolButton_2.menu().triggered.connect(self.change_percentage)
+		self.pushButton_5.clicked.connect(self.click_train)
+		self.pushButton_6.clicked.connect(self.click_unload)
 
-			Model(Win.lineEdit.displayText(), loaded_dataset)
-			model_selection_trigger(Win, item.text())
+	# Checks if a model with name exists
+	def __model_exist(self, name):
+		if(type(Model.models.get(name, False)) == Model):
+			return True
+		else:
+			return False
 
+	# New Button Function
+	def click_new(self):
+		if(self.lineEdit.displayText() != "" and loaded_dataset != ""):
+			if(not self.__model_exist(self.lineEdit.displayText())):
+				if(os.name == 'nt'):
+					data_name = loaded_dataset.split("\\")[-1]
+				else:
+					data_name = loaded_dataset.split("/")[-1]	
 
-# New function tool button
-def click_tool(Win):
-	global loaded_dataset
-	loaded_dataset = fileopenbox(title="Load dataset", filetypes=["*.csv"], default="*.csv")
+				QtWidgets.QApplication.processEvents()
+				item = QtWidgets.QTableWidgetItem(self.lineEdit.displayText())
+				item2 = QtWidgets.QTableWidgetItem(data_name)
+				self.tableWidget.setRowCount(self.tableWidget.rowCount()+1)
+				self.tableWidget.setItem(self.tableWidget.rowCount()-1,0, item)
+				self.tableWidget.setItem(self.tableWidget.rowCount()-1,1, item2)
+				QtWidgets.QApplication.processEvents()
 
-	if(loaded_dataset == None):
-		loaded_dataset = ""
+				Model(self.lineEdit.displayText(), loaded_dataset)
+				self.model_selection_trigger(item.text())
 
-	Win.lineEdit_2.setText(loaded_dataset)
+	# New function tool button
+	def click_tool(self):
+		global loaded_dataset
+		loaded_dataset = fileopenbox(title="Load dataset", filetypes=["*.csv"], default="*.csv")
 
-# Checks if a model with name exists
-def __model_exist(name):
-	if(type(Model.models.get(name, False)) == Model):
-		return True
-	else:
-		return False
+		if(loaded_dataset == None):
+			loaded_dataset = ""
 
-# Updates Model Information screen
-# Triggers for every model selection change
-def update_text_browser(Win):
-	if(not __model_exist(currently_selected_model)):
-		Win.textBrowser.setText("")
-	else:
-		Win.textBrowser.setText(str(Model.models[currently_selected_model]))
+		self.lineEdit_2.setText(loaded_dataset)
 
-# Triggers every mouse selection in Model list
-def model_selection_trigger(Win, modelname):
-	global currently_selected_model
-	global all_selected_models
+	# Updates Model Information screen
+	# Triggers for every model selection change
+	def update_text_browser(self):
+		if(not self.__model_exist(currently_selected_model)):
+			self.textBrowser.setText("")
+		else:
+			self.textBrowser.setText(str(Model.models[currently_selected_model]))
 
-	if(modelname == []):
-		return
+	# Triggers every mouse selection in Model list
+	def model_selection_trigger(self, modelname):
+		global currently_selected_model
+		global all_selected_models
 
-	elif(type(modelname) == list):
-		all_selected_models = [x for x in modelname[::2]]
-		currently_selected_model = modelname[-2].text()
-
-	else:
-		currently_selected_model = modelname
-
-	reset_spinboxes(Win)
-	update_text_browser(Win)
-
-# Re-set all spinbox values
-def reset_spinboxes(Win):
-	Win.spinBox_2.setMaximum(get_max_spinbox())
-	Win.spinBox_3.setMaximum(get_max_spinbox())
-	Win.spinBox_4.setMaximum(get_max_spinbox())
-	Win.spinBox_2.setValue(0)
-	Win.spinBox_3.setValue(0)
-	Win.spinBox_4.setValue(0)
-	Win.spinBox_5.setValue(0)
-	Win.lineEdit_3.setText("")
-	Win.lineEdit_4.setText("")
-	Win.lineEdit_5.setText("")	
-	Win.lineEdit_6.setText("")
-
-	if(currently_selected_model != ""):
-		if(not __model_exist(currently_selected_model)):
+		if(modelname == []):
 			return
-		if(Model.models[currently_selected_model].target_column != None):
-			Win.spinBox_5.setMaximum(get_max_spinbox_class())
 
-# Gets maximum number of Select and Target Spinboxes
-def get_max_spinbox():
-	if(currently_selected_model == ""):
-		return 0
-	if(not __model_exist(currently_selected_model)):
-		return 0
-	return len(Model.models[currently_selected_model].data.columns)-1
+		elif(type(modelname) == list):
+			all_selected_models = [x for x in modelname[::2]]
+			currently_selected_model = modelname[-2].text()
 
-# Gets maximum number of Select to OVA Spinbox
-def get_max_spinbox_class():
-	if(currently_selected_model == ""):
-		return 0
-	if(not __model_exist(currently_selected_model)):
-		return 0
-	return len(Model.models[currently_selected_model].get_classes())-1	
+		else:
+			currently_selected_model = modelname
 
-# Gets the header related to n element
-def get_spinbox_header(n):
-	if(currently_selected_model == ''):
-		return ""
-	return Model.models[currently_selected_model].data.columns[n]
+		self.reset_spinboxes()
+		self.update_text_browser()
 
-def spinbox_end_change(q):
-	global ui
-	ui.lineEdit_4.setText(get_spinbox_header(q))
-def spinbox_start_change(q):
-	global ui
-	ui.lineEdit_3.setText(get_spinbox_header(q))
-def spinbox_target_change(q):
-	global ui
-	ui.lineEdit_5.setText(get_spinbox_header(q))
-def spinbox_ova_change(q):
-	global ui
-	ui.lineEdit_6.setText(Model.models[currently_selected_model].get_classes()[q])
+	# Re-set all spinbox values
+	def reset_spinboxes(self):
+		self.spinBox_2.setMaximum(self.get_max_spinbox())
+		self.spinBox_3.setMaximum(self.get_max_spinbox())
+		self.spinBox_4.setMaximum(self.get_max_spinbox())
+		self.spinBox_2.setValue(0)
+		self.spinBox_3.setValue(0)
+		self.spinBox_4.setValue(0)
+		self.spinBox_5.setValue(0)
+		self.lineEdit_3.setText("")
+		self.lineEdit_4.setText("")
+		self.lineEdit_5.setText("")	
+		self.lineEdit_6.setText("")
 
-# Select button click
-def click_select(Win):
-	if(currently_selected_model != ""):
-		Model.models[currently_selected_model].set_feature_range(Win.spinBox_3.value(), Win.spinBox_2.value())
-		update_text_browser(Win)
+		if(currently_selected_model != ""):
+			if(not self.__model_exist(currently_selected_model)):
+				return
+			if(Model.models[currently_selected_model].target_column != None):
+				self.spinBox_5.setMaximum(self.get_max_spinbox_class())
 
-# Target button click
-def click_target(Win):
-	if(currently_selected_model != ""):
-		Model.models[currently_selected_model].set_target_column(Win.spinBox_4.value())
-		update_text_browser(Win)
+	# Gets maximum number of Select and Target Spinboxes
+	def get_max_spinbox(self):
+		if(currently_selected_model == ""):
+			return 0
+		if(not self.__model_exist(currently_selected_model)):
+			return 0
+		return len(Model.models[currently_selected_model].data.columns)-1
 
-# Dummification button click
-def click_dummy(Win):
-	if(currently_selected_model != ""):
-		if(not Model.models[currently_selected_model].binary_feature_space and Model.models[currently_selected_model].target_column != None):
-			Model.models[currently_selected_model].create_dummies()
-			update_text_browser(Win)
-			reset_spinboxes(Win)
+	# Gets maximum number of Select to OVA Spinbox
+	def get_max_spinbox_class(self):
+		if(currently_selected_model == ""):
+			return 0
+		if(not self.__model_exist(currently_selected_model)):
+			return 0
+		return len(Model.models[currently_selected_model].get_classes())-1	
 
-# OVA button click
-def click_ova(Win):
-	if(currently_selected_model != ""):
-		if(not Model.models[currently_selected_model].binary_target_space):
-			Model.models[currently_selected_model].one_vs_all_transform(Win.lineEdit_6.text())
-			update_text_browser(Win)
-			reset_spinboxes(Win)
+	# Gets the header related to n element
+	def get_spinbox_header(self, n):
+		if(currently_selected_model == ''):
+			return ""
+		return Model.models[currently_selected_model].data.columns[n]
 
-# Changes percentage of training
-def change_percentage(q):
-	global ui
-	ui.toolButton_2.setText(q.text())		
+	def spinbox_end_change(self, q):
+		self.lineEdit_4.setText(self.get_spinbox_header(q))
+	def spinbox_start_change(self, q):
+		self.lineEdit_3.setText(self.get_spinbox_header(q))
+	def spinbox_target_change(self, q):
+		self.lineEdit_5.setText(self.get_spinbox_header(q))
+	def spinbox_ova_change(self, q):
+		self.lineEdit_6.setText(Model.models[currently_selected_model].get_classes()[q])
 
-# Creates Train Percentage menu
-def set_train_menu(Win):
-	menu = QtWidgets.QMenu()
+	# Select button click
+	def click_select(self):
+		if(currently_selected_model != ""):
+			Model.models[currently_selected_model].set_feature_range(self.spinBox_3.value(), self.spinBox_2.value())
+		self.update_text_browser()
 
-	for i in range(1, 10):
-		act = menu.addAction(str(i*10) + "%")
-	menu.setDefaultAction(act)
-	Win.toolButton_2.setText("90%")
-	Win.toolButton_2.setMenu(menu)
+	# Target button click
+	def click_target(self):
+		if(currently_selected_model != ""):
+			Model.models[currently_selected_model].set_target_column(self.spinBox_4.value())
+		self.update_text_browser()
 
-# Train button click
-def click_train(Win):
-	if(currently_selected_model != ""):
-		md = currently_selected_model
+	# Dummification button click
+	def click_dummy(self):
+		if(currently_selected_model != ""):
+			if(not Model.models[currently_selected_model].binary_feature_space and Model.models[currently_selected_model].target_column != None):
+				Model.models[currently_selected_model].create_dummies()
+				self.update_text_browser()
+				self.reset_spinboxes()
 
-		if(Model.models[md].binary_feature_space and Model.models[md].binary_target_space):
-			iterations = int(Win.spinBox.text())
-			percentage = int(Win.toolButton_2.text()[:-1])/100
-			strat = Win.radioButton.isChecked()
+	# OVA button click
+	def click_ova(self):
+		if(currently_selected_model != ""):
+			if(not Model.models[currently_selected_model].binary_target_space):
+				Model.models[currently_selected_model].one_vs_all_transform(self.lineEdit_6.text())
+				self.update_text_browser()
+				self.reset_spinboxes()
 
-			for i in range(0, iterations):
-				Model.models[md].holdout(train_s=percentage, stratify=strat)
-				Model.models[md].fit()
+	# Changes percentage of training
+	def change_percentage(self, q):
+		self.toolButton_2.setText(q.text())		
 
-				if(currently_selected_model == md):
-					update_text_browser(Win)
+	# Creates Train Percentage menu
+	def set_train_menu(self):
+		menu = QtWidgets.QMenu()
 
-			Result(md, Model.models[md].get_top_snps(top=None), times_fit=Model.models[md].times_fit)
+		for i in range(1, 10):
+			act = menu.addAction(str(i*10) + "%")
+		menu.setDefaultAction(act)
+		self.toolButton_2.setText("90%")
+		self.toolButton_2.setMenu(menu)
 
-# Unload button click
-def click_unload(Win):
-	global all_selected_models
-	global currently_selected_model
+	# Train button click
+	def click_train(self):
 
-	for md in all_selected_models:
-		Model.models.pop(md.text())
+		# Cancel operation implementation
+		if(Worker.thread_control.get(currently_selected_model, False) != False):
+			return
 
-	delete_list = []
-
-	for i in range(Win.tableWidget.rowCount()):
-		if(Win.tableWidget.item(i,0).text() in [x.text() for x in all_selected_models]):
-			delete_list.append(i)
-
-	delete_list = sorted(delete_list)
-	currently_selected_model = ""
-	all_selected_models = []
-	Win.textBrowser.setText("")
-
-	for ind in delete_list:
-		Win.tableWidget.removeRow(ind)
-		for i in range(len(delete_list)):
-			delete_list[i] -= 1
+		# Train operation
+		else:
+			w = Worker("train", int(self.spinBox.text()), int(self.toolButton_2.text()[:-1])/100, self.radioButton.isChecked())
+			w.signals.update.connect(self.update_text_browser)
+			Worker.thread_control[currently_selected_model] = True
+			self.threads.start(w)
 
 
+	# Unload button click
+	def click_unload(self):
+		global all_selected_models
+		global currently_selected_model
+
+		for md in all_selected_models:
+			Model.models.pop(md.text())
+
+		delete_list = []
+
+		for i in range(self.tableWidget.rowCount()):
+			if(self.tableWidget.item(i,0).text() in [x.text() for x in all_selected_models]):
+				delete_list.append(i)
+
+		delete_list = sorted(delete_list)
+		currently_selected_model = ""
+		all_selected_models = []
+		self.textBrowser.setText("")
+
+		for ind in delete_list:
+			self.tableWidget.removeRow(ind)
+			for i in range(len(delete_list)):
+				delete_list[i] -= 1	
+
+'''
+
+Worker class for Threaded control
+
+'''
+
+class Worker(QRunnable):
+	thread_control = {}
+
+	def __init__(self, function, *args):
+		super().__init__()
+		self.function = function
+		self.args = args
+		self.signals = Signals()
+
+	def run(self):
+		if(self.function == "train"):
+			global currently_selected_model
+
+			if(currently_selected_model != ""):
+				md = currently_selected_model
+
+				if(Model.models[md].binary_feature_space and Model.models[md].binary_target_space):
+					iterations = self.args[0] #int(self.spinBox.text())
+					percentage = self.args[1] #int(self.toolButton_2.text()[:-1])/100
+					strat = self.args[2] #self.radioButton.isChecked()
+
+					for i in range(0, iterations):
+						Model.models[md].holdout(train_s=percentage, stratify=strat)
+						Model.models[md].fit()
+
+						if(currently_selected_model == md):
+							#self.update_text_browser()
+							self.signals.update.emit()
+
+						# Stop proccess
+						if(Worker.thread_control.get(md, False) == False):
+							return
+
+					Result(md, Model.models[md].get_top_snps(top=None), times_fit=Model.models[md].times_fit)
+					Worker.thread_control.pop(md)	
+
+'''
+
+Worker Signals class for inter-threading communication
+
+'''
+
+class Signals(QObject):
+	train = pyqtSignal(str)
+	update = pyqtSignal()
+
+# Warning messages suppressor
+def handler(msg_type, msg_log_context, msg_string):
+    if(msg_type == 1):
+    	pass
+    else:
+    	print(msg_string)
 
 
 loaded_dataset = ""
@@ -260,9 +318,6 @@ Model.GUI = True
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
-    MainWindow = QtWidgets.QMainWindow()
-    ui = Ui_MainWindow()
-    ui.setupUi(MainWindow)
-    setup_pywin(ui)
-    MainWindow.show()
+    ui = Win()
+    ui.show()
     sys.exit(app.exec_())
