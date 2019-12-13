@@ -116,6 +116,7 @@ class Win(QtWidgets.QMainWindow, Ui_MainWindow):
 
 		self.reset_spinboxes()
 		self.update_text_browser()
+		self.toggle_train_tag()
 
 	# Re-set all spinbox values
 	def reset_spinboxes(self):
@@ -215,15 +216,23 @@ class Win(QtWidgets.QMainWindow, Ui_MainWindow):
 
 		# Cancel operation implementation
 		if(Worker.thread_control.get(currently_selected_model, False) != False):
-			return
+			Worker.thread_control.pop(currently_selected_model)
+			self.toggle_train_tag()
 
 		# Train operation
 		else:
 			w = Worker("train", int(self.spinBox.text()), int(self.toolButton_2.text()[:-1])/100, self.radioButton.isChecked())
 			w.signals.update.connect(self.update_text_browser)
 			Worker.thread_control[currently_selected_model] = True
+			self.toggle_train_tag()
 			self.threads.start(w)
 
+	# Changes Train button tag
+	def toggle_train_tag(self):
+		if(Worker.thread_control.get(currently_selected_model, False) != False):
+			self.pushButton_5.setText("Stop Training")
+		else:
+			self.pushButton_5.setText("Train")
 
 	# Unload button click
 	def click_unload(self):
@@ -272,16 +281,15 @@ class Worker(QRunnable):
 				md = currently_selected_model
 
 				if(Model.models[md].binary_feature_space and Model.models[md].binary_target_space):
-					iterations = self.args[0] #int(self.spinBox.text())
-					percentage = self.args[1] #int(self.toolButton_2.text()[:-1])/100
-					strat = self.args[2] #self.radioButton.isChecked()
+					iterations = self.args[0]
+					percentage = self.args[1]
+					strat = self.args[2] 
 
 					for i in range(0, iterations):
 						Model.models[md].holdout(train_s=percentage, stratify=strat)
 						Model.models[md].fit()
 
 						if(currently_selected_model == md):
-							#self.update_text_browser()
 							self.signals.update.emit()
 
 						# Stop proccess
@@ -289,7 +297,9 @@ class Worker(QRunnable):
 							return
 
 					Result(md, Model.models[md].get_top_snps(top=None), times_fit=Model.models[md].times_fit)
-					Worker.thread_control.pop(md)	
+					Worker.thread_control.pop(md)
+
+			Worker.signals.finished_training.emit()	
 
 '''
 
@@ -298,8 +308,8 @@ Worker Signals class for inter-threading communication
 '''
 
 class Signals(QObject):
-	train = pyqtSignal(str)
 	update = pyqtSignal()
+	finished_training = pyqtSignal()
 
 # Warning messages suppressor
 def handler(msg_type, msg_log_context, msg_string):
