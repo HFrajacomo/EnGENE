@@ -192,24 +192,20 @@ class Win(QtWidgets.QMainWindow, Ui_MainWindow):
 	# Dummification button click
 	def click_dummy(self):
 		w = Worker("dummy")
-		w.signals.finished_dummy.connect(self.set_dummy)
+		w.signals.finished_dummy_ova.connect(self.set_dummy_ova)
 		self.threads.start(w)
 
-	# Set dummies operation
-	def set_dummy(self, modelname):
+	# Set dummies and ova post processing
+	def set_dummy_ova(self, modelname):
 		self.update_text_browser()
 		self.reset_spinboxes()
 		self.update_model_status(modelname)
 
 	# OVA button click
 	def click_ova(self):
-		if(currently_selected_model != ""):
-			if(not Model.models[currently_selected_model].binary_target_space):
-				Model.models[currently_selected_model].one_vs_all_transform(self.lineEdit_6.text())
-				self.update_text_browser()
-				self.reset_spinboxes()
-
-		self.update_model_status(currently_selected_model)
+		w = Worker("ova", self.lineEdit_6.text())
+		w.signals.finished_dummy_ova.connect(self.set_dummy_ova)
+		self.threads.start(w)
 
 	# Changes percentage of training
 	def change_percentage(self, q):
@@ -374,7 +370,15 @@ class Worker(QRunnable):
 			if(modelname != ""):
 				if(not Model.models[modelname].binary_feature_space and Model.models[modelname].target_column != None):
 					Model.models[modelname].create_dummies()
-			self.signals.finished_dummy.emit(modelname)
+			self.signals.finished_dummy_ova.emit(modelname)
+
+		elif(self.function == "ova"):
+			modelname = currently_selected_model
+			if(modelname != ""):
+				if(not Model.models[modelname].binary_target_space):
+					Model.models[modelname].one_vs_all_transform(self.args[0])
+			self.signals.finished_dummy_ova.emit(modelname)
+
 		del(self)
 
 '''
@@ -390,8 +394,8 @@ class Signals(QObject):
 	finished_training = pyqtSignal(str)
 	# New operation
 	finished_new = pyqtSignal(str,str,str)
-	# Dummy operation
-	finished_dummy = pyqtSignal(str)
+	# Dummy and OVA operation
+	finished_dummy_ova = pyqtSignal(str)
 
 # Warning messages suppressor
 def handler(msg_type, msg_log_context, msg_string):
