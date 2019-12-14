@@ -71,33 +71,6 @@ class Win(QtWidgets.QMainWindow, Ui_MainWindow):
 		w.signals.finished_new.connect(self.set_table)
 		self.threads.start(w)
 
-		'''
-		if(self.lineEdit.displayText() != "" and loaded_dataset != ""):
-			if(not self.__model_exist(self.lineEdit.displayText())):
-				if(os.name == 'nt'):
-					data_name = loaded_dataset.split("\\")[-1]
-				else:
-					data_name = loaded_dataset.split("/")[-1]	
-
-				Model(self.lineEdit.displayText(), loaded_dataset)
-
-				item = QtWidgets.QTableWidgetItem(self.lineEdit.displayText())
-				item2 = QtWidgets.QTableWidgetItem(data_name)
-
-				if(Model.models[self.lineEdit.displayText()].binary_feature_space and Model.models[self.lineEdit.displayText()].binary_target_space):
-					item3 = QtWidgets.QTableWidgetItem("Ready")
-					item3.setForeground(QColor(0,255,0))
-				else:
-					item3 = QtWidgets.QTableWidgetItem("Not Ready")
-					item3.setForeground(QColor(255,0,0))					
-
-				self.tableWidget.setRowCount(self.tableWidget.rowCount()+1)
-				self.tableWidget.setItem(self.tableWidget.rowCount()-1,0, item)
-				self.tableWidget.setItem(self.tableWidget.rowCount()-1,1, item2)
-				self.tableWidget.setItem(self.tableWidget.rowCount()-1,2, item3)
-				self.model_selection_trigger(item.text())
-		'''
-
 	# Sets an item in QTableWidget
 	def set_table(self, item1, item2, item3):
 		self.update_text_browser()
@@ -218,12 +191,15 @@ class Win(QtWidgets.QMainWindow, Ui_MainWindow):
 
 	# Dummification button click
 	def click_dummy(self):
-		if(currently_selected_model != ""):
-			if(not Model.models[currently_selected_model].binary_feature_space and Model.models[currently_selected_model].target_column != None):
-				Model.models[currently_selected_model].create_dummies()
-				self.update_text_browser()
-				self.reset_spinboxes()
-		self.update_model_status(currently_selected_model)
+		w = Worker("dummy")
+		w.signals.finished_dummy.connect(self.set_dummy)
+		self.threads.start(w)
+
+	# Set dummies operation
+	def set_dummy(self, modelname):
+		self.update_text_browser()
+		self.reset_spinboxes()
+		self.update_model_status(modelname)
 
 	# OVA button click
 	def click_ova(self):
@@ -393,6 +369,12 @@ class Worker(QRunnable):
 
 			self.signals.finished_training.emit(md)	
 
+		elif(self.function == "dummy"):
+			modelname = currently_selected_model
+			if(modelname != ""):
+				if(not Model.models[modelname].binary_feature_space and Model.models[modelname].target_column != None):
+					Model.models[modelname].create_dummies()
+			self.signals.finished_dummy.emit(modelname)
 		del(self)
 
 '''
@@ -408,6 +390,8 @@ class Signals(QObject):
 	finished_training = pyqtSignal(str)
 	# New operation
 	finished_new = pyqtSignal(str,str,str)
+	# Dummy operation
+	finished_dummy = pyqtSignal(str)
 
 # Warning messages suppressor
 def handler(msg_type, msg_log_context, msg_string):
