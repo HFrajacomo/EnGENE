@@ -3,6 +3,7 @@ __author__ = "Henrique Frajacomo"
 import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QThreadPool, QRunnable, pyqtSignal, pyqtSlot, QObject, QThread
+from PyQt5.QtGui import QColor
 from easygui import *
 import os
 
@@ -35,8 +36,8 @@ class Win(QtWidgets.QMainWindow, Ui_MainWindow):
 		self.pushButton.clicked.connect(self.click_new)
 		self.toolButton.clicked.connect(self.click_tool)
 		self.tableWidget.setRowCount(0)
-		self.tableWidget.setColumnCount(2)
-		self.tableWidget.setHorizontalHeaderLabels(["Model name", "Filename"])
+		self.tableWidget.setColumnCount(3)
+		self.tableWidget.setHorizontalHeaderLabels(["Model name", "Filename", "Status"])
 		self.tableWidget.resizeColumnsToContents()
 		self.tableWidget.resizeRowsToContents()
 		self.tableWidget.itemSelectionChanged.connect(lambda:self.model_selection_trigger(self.tableWidget.selectedItems()))
@@ -70,15 +71,22 @@ class Win(QtWidgets.QMainWindow, Ui_MainWindow):
 				else:
 					data_name = loaded_dataset.split("/")[-1]	
 
-				QtWidgets.QApplication.processEvents()
+				Model(self.lineEdit.displayText(), loaded_dataset)
+
 				item = QtWidgets.QTableWidgetItem(self.lineEdit.displayText())
 				item2 = QtWidgets.QTableWidgetItem(data_name)
+
+				if(Model.models[self.lineEdit.displayText()].binary_feature_space and Model.models[self.lineEdit.displayText()].binary_target_space):
+					item3 = QtWidgets.QTableWidgetItem("Ready")
+					item3.setForeground(QColor(0,255,0))
+				else:
+					item3 = QtWidgets.QTableWidgetItem("Not Ready")
+					item3.setForeground(QColor(255,0,0))					
+
 				self.tableWidget.setRowCount(self.tableWidget.rowCount()+1)
 				self.tableWidget.setItem(self.tableWidget.rowCount()-1,0, item)
 				self.tableWidget.setItem(self.tableWidget.rowCount()-1,1, item2)
-				QtWidgets.QApplication.processEvents()
-
-				Model(self.lineEdit.displayText(), loaded_dataset)
+				self.tableWidget.setItem(self.tableWidget.rowCount()-1,2, item3)
 				self.model_selection_trigger(item.text())
 
 	# New function tool button
@@ -108,8 +116,8 @@ class Win(QtWidgets.QMainWindow, Ui_MainWindow):
 			return
 
 		elif(type(modelname) == list):
-			all_selected_models = [x for x in modelname[::2]]
-			currently_selected_model = modelname[-2].text()
+			all_selected_models = [x for x in modelname[::3]]
+			currently_selected_model = modelname[-3].text()
 
 		else:
 			currently_selected_model = modelname
@@ -179,6 +187,7 @@ class Win(QtWidgets.QMainWindow, Ui_MainWindow):
 	def click_target(self):
 		if(currently_selected_model != ""):
 			Model.models[currently_selected_model].set_target_column(self.spinBox_4.value())
+		self.update_model_status(currently_selected_model)
 		self.update_text_browser()
 
 	# Dummification button click
@@ -188,6 +197,7 @@ class Win(QtWidgets.QMainWindow, Ui_MainWindow):
 				Model.models[currently_selected_model].create_dummies()
 				self.update_text_browser()
 				self.reset_spinboxes()
+		self.update_model_status(currently_selected_model)
 
 	# OVA button click
 	def click_ova(self):
@@ -196,6 +206,8 @@ class Win(QtWidgets.QMainWindow, Ui_MainWindow):
 				Model.models[currently_selected_model].one_vs_all_transform(self.lineEdit_6.text())
 				self.update_text_browser()
 				self.reset_spinboxes()
+
+		self.update_model_status(currently_selected_model)
 
 	# Changes percentage of training
 	def change_percentage(self, q):
@@ -213,7 +225,6 @@ class Win(QtWidgets.QMainWindow, Ui_MainWindow):
 
 	# Train button click
 	def click_train(self):
-
 		# Cancel operation implementation
 		if(Worker.thread_control.get(currently_selected_model, False) != False):
 			Worker.thread_control.pop(currently_selected_model)
@@ -222,7 +233,9 @@ class Win(QtWidgets.QMainWindow, Ui_MainWindow):
 		# Train operation
 		else:
 			w = Worker("train", int(self.spinBox.text()), int(self.toolButton_2.text()[:-1])/100, self.radioButton.isChecked())
-			w.signals.update.connect(self.update_text_browser)
+			w.signals.update_info.connect(self.update_text_browser)
+			w.signals.update_list.connect(self.training_update)
+			w.signals.finished_training.connect(self.update_model_status)
 			Worker.thread_control[currently_selected_model] = True
 			self.toggle_train_tag()
 			self.threads.start(w)
@@ -231,8 +244,10 @@ class Win(QtWidgets.QMainWindow, Ui_MainWindow):
 	def toggle_train_tag(self):
 		if(Worker.thread_control.get(currently_selected_model, False) != False):
 			self.pushButton_5.setText("Stop Training")
+			self.update_model_status(currently_selected_model)
 		else:
 			self.pushButton_5.setText("Train")
+			self.update_model_status(currently_selected_model)
 
 	# Unload button click
 	def click_unload(self):
@@ -257,6 +272,30 @@ class Win(QtWidgets.QMainWindow, Ui_MainWindow):
 			self.tableWidget.removeRow(ind)
 			for i in range(len(delete_list)):
 				delete_list[i] -= 1	
+
+	# Returns model row index in Model list
+	def get_row(self, modelname):
+		for i in range(0, self.tableWidget.rowCount()):
+			if(self.tableWidget.item(i,0).text() == modelname):
+				return i
+		return -1
+
+	# Updates the state of a model in model list
+	def update_model_status(self, modelname):
+		index = self.get_row(modelname)
+
+		if(Model.models[modelname].binary_feature_space and Model.models[modelname].binary_target_space):
+			self.tableWidget.item(index,2).setText("Ready")
+			self.tableWidget.item(index,2).setForeground(QColor(0,255,0))
+		else:
+			self.tableWidget.item(index,2).setText("Not Ready")
+			self.tableWidget.item(index,2).setForeground(QColor(255,0,0))
+
+	# Updates training routine
+	def training_update(self, modelname, value):
+		index = self.get_row(modelname)
+		self.tableWidget.item(index,2).setText(value)
+		self.tableWidget.item(index,2).setForeground(QColor(0,0,255))
 
 '''
 
@@ -290,16 +329,19 @@ class Worker(QRunnable):
 						Model.models[md].fit()
 
 						if(currently_selected_model == md):
-							self.signals.update.emit()
+							self.signals.update_info.emit()
+
+						self.signals.update_list.emit(md, str(i) + "/" + str(iterations))
 
 						# Stop proccess
 						if(Worker.thread_control.get(md, False) == False):
+							self.signals.finished_training.emit(md)	
 							return
 
 					Result(md, Model.models[md].get_top_snps(top=None), times_fit=Model.models[md].times_fit)
 					Worker.thread_control.pop(md)
 
-			Worker.signals.finished_training.emit()	
+			self.signals.finished_training.emit(md)	
 
 '''
 
@@ -308,8 +350,9 @@ Worker Signals class for inter-threading communication
 '''
 
 class Signals(QObject):
-	update = pyqtSignal()
-	finished_training = pyqtSignal()
+	update_info = pyqtSignal()
+	update_list = pyqtSignal(str, str)
+	finished_training = pyqtSignal(str)
 
 # Warning messages suppressor
 def handler(msg_type, msg_log_context, msg_string):

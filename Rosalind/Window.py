@@ -39,7 +39,7 @@ class Ui_MainWindow(object):
         self.tableWidget = QtWidgets.QTableWidget(self.frame)
         self.tableWidget.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         self.tableWidget.setAlternatingRowColors(True)
-        self.tableWidget.setSelectionMode(QtWidgets.QAbstractItemView.MultiSelection)
+        self.tableWidget.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self.tableWidget.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.tableWidget.setObjectName("tableWidget")
         self.tableWidget.setColumnCount(0)
