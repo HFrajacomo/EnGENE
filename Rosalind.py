@@ -53,6 +53,7 @@ class Win(QtWidgets.QMainWindow, Ui_MainWindow):
 		self.tableWidget_3.resizeRowsToContents()
 
 		self.tableWidget.itemSelectionChanged.connect(lambda:self.model_selection_trigger(self.tableWidget.selectedItems()))
+		self.tableWidget_2.itemSelectionChanged.connect(lambda:self.fill_results(self.tableWidget_2.selectedItems()))
 		self.spinBox_2.valueChanged.connect(self.spinbox_end_change)
 		self.spinBox_3.valueChanged.connect(self.spinbox_start_change)
 		self.spinBox_4.valueChanged.connect(self.spinbox_target_change)
@@ -70,6 +71,8 @@ class Win(QtWidgets.QMainWindow, Ui_MainWindow):
 		header.setSectionResizeMode(2, QtWidgets.QHeaderView.ResizeToContents)
 		header2 = self.tableWidget_2.horizontalHeader()
 		header2.setSectionResizeMode(2, QtWidgets.QHeaderView.Stretch)
+		header3 = self.tableWidget_3.horizontalHeader()
+		header3.setSectionResizeMode(1, QtWidgets.QHeaderView.Stretch)
 
 	# Checks if a model with name exists
 	def __model_exist(self, name):
@@ -368,6 +371,25 @@ class Win(QtWidgets.QMainWindow, Ui_MainWindow):
 				return i
 		return -1
 
+	# Inserts results elements into SNP List
+	def fill_results(self, res):
+		self.tableWidget_3.clearContents()
+		self.tableWidget_3.setRowCount(0)
+
+		if(res == []):
+			return
+		res = Result.results[res[-5].text()].data
+
+		i = 0
+		for element in res:
+			item1 = QTableWidgetItem(element[0])
+			item2 = QTableWidgetItem(str(element[1]))
+			self.tableWidget_3.setRowCount(self.tableWidget_3.rowCount()+1)
+			self.tableWidget_3.setItem(i, 0, item1)
+			self.tableWidget_3.setItem(i, 1, item2)
+			i += 1
+
+
 '''
 
 Worker class for Threaded control
@@ -433,6 +455,7 @@ class Worker(QRunnable):
 							self.signals.finished_training.emit(md)	
 							return
 
+					Model.models[md].calculate_top_snps()
 					Result(md, Model.models[md].get_top_snps(top=None), times_fit=Model.models[md].times_fit, score=[Model.models[md].get_mean_precision(), Model.models[md].get_mean_recall()])
 					Worker.thread_control.pop(md)
 
@@ -482,6 +505,7 @@ loaded_dataset = ""
 version = "v1.0"
 currently_selected_model = ""
 all_selected_models = []
+currently_selected_result = ""
 Model.GUI = True
 
 if __name__ == "__main__":
