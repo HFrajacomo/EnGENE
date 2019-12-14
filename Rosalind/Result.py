@@ -1,11 +1,12 @@
 class Result:
 	results = {}
 
-	def __init__(self, name, res, times_fit=0, other_models=None):
+	def __init__(self, name, res, score, times_fit=0, other_models=None):
 		self.modelname = name
 		self.data = res
 		self.times_fit = times_fit
 		self.other_models = other_models
+		self.score = score
 
 		if(other_models != None):
 			self.modelname = "_multi_" + self.modelname

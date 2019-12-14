@@ -41,6 +41,17 @@ class Win(QtWidgets.QMainWindow, Ui_MainWindow):
 		self.tableWidget.setHorizontalHeaderLabels(["Model name", "Filename", "Status"])
 		self.tableWidget.resizeColumnsToContents()
 		self.tableWidget.resizeRowsToContents()
+		self.tableWidget_2.setRowCount(0)
+		self.tableWidget_2.setColumnCount(5)		
+		self.tableWidget_2.setHorizontalHeaderLabels(["Result name", "Precision", "Recall", "Times Trained", "Associated Models"])
+		self.tableWidget_2.resizeColumnsToContents()
+		self.tableWidget_2.resizeRowsToContents()
+		self.tableWidget_3.setRowCount(0)
+		self.tableWidget_3.setColumnCount(2)		
+		self.tableWidget_3.setHorizontalHeaderLabels(["SNP ID", "Score"])
+		self.tableWidget_3.resizeColumnsToContents()
+		self.tableWidget_3.resizeRowsToContents()
+
 		self.tableWidget.itemSelectionChanged.connect(lambda:self.model_selection_trigger(self.tableWidget.selectedItems()))
 		self.spinBox_2.valueChanged.connect(self.spinbox_end_change)
 		self.spinBox_3.valueChanged.connect(self.spinbox_start_change)
@@ -57,6 +68,8 @@ class Win(QtWidgets.QMainWindow, Ui_MainWindow):
 		self.pushButton_6.clicked.connect(self.click_unload)
 		header = self.tableWidget.horizontalHeader()
 		header.setSectionResizeMode(2, QtWidgets.QHeaderView.ResizeToContents)
+		header2 = self.tableWidget_2.horizontalHeader()
+		header2.setSectionResizeMode(2, QtWidgets.QHeaderView.Stretch)
 
 	# Checks if a model with name exists
 	def __model_exist(self, name):
@@ -233,19 +246,32 @@ class Win(QtWidgets.QMainWindow, Ui_MainWindow):
 			w = Worker("train", int(self.spinBox.text()), int(self.toolButton_2.text()[:-1])/100, self.radioButton.isChecked())
 			w.signals.update_info.connect(self.update_text_browser)
 			w.signals.update_list.connect(self.training_update)
-			w.signals.finished_training.connect(self.toggle_train_tag)
+			w.signals.finished_training.connect(self.training_post_process)
 			Worker.thread_control[currently_selected_model] = True
 			self.toggle_train_tag()
 			self.threads.start(w)
 
+	# After training processing
+	def training_post_process(self, name, other):
+		self.toggle_train_tag(name)
+		self.add_result(name, other)
+
 	# Changes Train button tag
-	def toggle_train_tag(self):
-		if(Worker.thread_control.get(currently_selected_model, False) != False):
-			self.pushButton_5.setText("Stop Training")
-			self.update_model_status(currently_selected_model)
+	def toggle_train_tag(self, name=None):
+		if(name == None):
+			if(Worker.thread_control.get(currently_selected_model, False) != False):
+				self.pushButton_5.setText("Stop Training")
+				self.update_model_status(currently_selected_model)
+			else:
+				self.pushButton_5.setText("Train")
+				self.update_model_status(currently_selected_model)
 		else:
-			self.pushButton_5.setText("Train")
-			self.update_model_status(currently_selected_model)
+			if(Worker.thread_control.get(name, False) != False):
+				self.pushButton_5.setText("Stop Training")
+				self.update_model_status(name)
+			else:
+				self.pushButton_5.setText("Train")
+				self.update_model_status(name)			
 
 	# Unload button click
 	def click_unload(self):
@@ -294,6 +320,53 @@ class Win(QtWidgets.QMainWindow, Ui_MainWindow):
 		index = self.get_row(modelname)
 		self.tableWidget.item(index,2).setText(value)
 		self.tableWidget.item(index,2).setForeground(QColor(0,0,255))
+
+	# Add result to results list
+	def add_result(self, name, other):
+		r = Result.results[name]
+
+		items = []
+		items.append(QTableWidgetItem(r.modelname))
+		items.append(QTableWidgetItem('{0:.3f}'.format(r.score[0]*100) + '%'))
+		items.append(QTableWidgetItem('{0:.3f}'.format(r.score[1]*100) + '%'))
+		items.append(QTableWidgetItem(str(r.times_fit)))
+		items.append(QTableWidgetItem(str(r.other_models).replace("[", "").replace("]", "")))
+
+		if(self.__result_exists(name, other)):
+			index = self.get_row_result(name) 
+			i = 0
+			for el in items:
+				self.tableWidget_2.setItem(index, i, el)
+				i += 1
+		else:
+			self.tableWidget_2.setRowCount(self.tableWidget_2.rowCount()+1)
+			i = 0
+			for el in items:
+				self.tableWidget_2.setItem(self.tableWidget_2.rowCount()-1, i, el)
+				i += 1
+
+	# Checks if a Result already exists
+	def __result_exists(self, name, other):
+		other = other.replace("[", "").replace("]", "").split(",")
+
+		for i in range(0, self.tableWidget_2.rowCount()):
+			if(self.tableWidget_2.item(i,0).text() == name):
+				if(other == []):
+					return True
+				if(len(other) != len(self.tableWidget_2.item(i,4).text().split(","))):
+					continue
+				else:
+					if(set(other) == set(self.tableWidget_2.item(i,4).text().replace("[", "").replace(']', '').split(","))):
+						return True
+
+		return False
+
+	# Finds result index in Results List
+	def get_row_result(self, name):
+		for i in range(0, self.tableWidget_2.rowCount()):
+			if(self.tableWidget_2.item(i,0).text() == name):
+				return i
+		return -1
 
 '''
 
@@ -360,10 +433,10 @@ class Worker(QRunnable):
 							self.signals.finished_training.emit(md)	
 							return
 
-					Result(md, Model.models[md].get_top_snps(top=None), times_fit=Model.models[md].times_fit)
+					Result(md, Model.models[md].get_top_snps(top=None), times_fit=Model.models[md].times_fit, score=[Model.models[md].get_mean_precision(), Model.models[md].get_mean_recall()])
 					Worker.thread_control.pop(md)
 
-			self.signals.finished_training.emit(md)	
+			self.signals.finished_training.emit(md, str(Result.results[md].other_models))	
 
 		elif(self.function == "dummy"):
 			modelname = currently_selected_model
@@ -391,7 +464,7 @@ class Signals(QObject):
 	# Train operation
 	update_info = pyqtSignal()
 	update_list = pyqtSignal(str, str)
-	finished_training = pyqtSignal(str)
+	finished_training = pyqtSignal(str, str)
 	# New operation
 	finished_new = pyqtSignal(str,str,str)
 	# Dummy and OVA operation
