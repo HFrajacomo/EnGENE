@@ -67,6 +67,7 @@ class Win(QtWidgets.QMainWindow, Ui_MainWindow):
 		self.toolButton_2.menu().triggered.connect(self.change_percentage)
 		self.pushButton_5.clicked.connect(self.click_train)
 		self.pushButton_6.clicked.connect(self.click_unload)
+		self.pushButton_10.clicked.connect(lambda: self.click_cross(self.tableWidget_2.selectedItems()))
 		header = self.tableWidget.horizontalHeader()
 		header.setSectionResizeMode(2, QtWidgets.QHeaderView.ResizeToContents)
 		header2 = self.tableWidget_2.horizontalHeader()
@@ -330,8 +331,14 @@ class Win(QtWidgets.QMainWindow, Ui_MainWindow):
 
 		items = []
 		items.append(QTableWidgetItem(r.modelname))
-		items.append(QTableWidgetItem('{0:.3f}'.format(r.score[0]*100) + '%'))
-		items.append(QTableWidgetItem('{0:.3f}'.format(r.score[1]*100) + '%'))
+
+		if(type(r.score[0]) == str):
+			items.append(QTableWidgetItem(r.score[0]))
+			items.append(QTableWidgetItem(r.score[1]))			
+		else:
+			items.append(QTableWidgetItem('{0:.3f}'.format(float(r.score[0]*100)) + '%'))
+			items.append(QTableWidgetItem('{0:.3f}'.format(float(r.score[1]*100)) + '%'))
+
 		items.append(QTableWidgetItem(str(r.times_fit)))
 		items.append(QTableWidgetItem(str(r.other_models).replace("[", "").replace("]", "")))
 
@@ -372,13 +379,18 @@ class Win(QtWidgets.QMainWindow, Ui_MainWindow):
 		return -1
 
 	# Inserts results elements into SNP List
-	def fill_results(self, res):
+	def fill_results(self, res, SIGNAL=False):
 		self.tableWidget_3.clearContents()
 		self.tableWidget_3.setRowCount(0)
 
 		if(res == []):
 			return
-		res = Result.results[res[-5].text()].data
+
+		if(not SIGNAL):
+			res = Result.results[res[-5].text()].data
+		else:
+			self.add_result(res, Result.results[res].other_models)
+			res = Result.results[res].data
 
 		i = 0
 		for element in res:
@@ -389,6 +401,11 @@ class Win(QtWidgets.QMainWindow, Ui_MainWindow):
 			self.tableWidget_3.setItem(i, 1, item2)
 			i += 1
 
+	# Cross Correlation Operation click
+	def click_cross(self, selected):
+		w = Worker("cross", selected)
+		w.signals.finished_cross.connect(self.fill_results)
+		self.threads.start(w)
 
 '''
 
@@ -475,6 +492,12 @@ class Worker(QRunnable):
 					Model.models[modelname].one_vs_all_transform(self.args[0])
 			self.signals.finished_dummy_ova.emit(modelname)
 
+		elif(self.function == "cross"):
+			all_data = [x.text() for x in self.args[0][::5]]
+			r = Result.results[all_data[0]]
+			r = r.cross_check_models(all_data)
+			self.signals.finished_cross.emit(r.modelname, True)
+
 		del(self)
 
 '''
@@ -492,6 +515,8 @@ class Signals(QObject):
 	finished_new = pyqtSignal(str,str,str)
 	# Dummy and OVA operation
 	finished_dummy_ova = pyqtSignal(str)
+	# Cross operation
+	finished_cross = pyqtSignal(str, bool)
 
 # Warning messages suppressor
 def handler(msg_type, msg_log_context, msg_string):
