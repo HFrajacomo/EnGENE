@@ -44,6 +44,8 @@ class Ui_MainWindow(object):
         self.tableWidget.setObjectName("tableWidget")
         self.tableWidget.setColumnCount(0)
         self.tableWidget.setRowCount(0)
+        self.tableWidget.horizontalHeader().setCascadingSectionResizes(True)
+        self.tableWidget.horizontalHeader().setDefaultSectionSize(250)
         self.gridLayout.addWidget(self.tableWidget, 1, 0, 1, 1)
         self.gridLayout_3.addWidget(self.frame, 0, 0, 1, 1)
         self.tabWidget = QtWidgets.QTabWidget(self.centralwidget)

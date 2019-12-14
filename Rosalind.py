@@ -4,6 +4,7 @@ import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QThreadPool, QRunnable, pyqtSignal, pyqtSlot, QObject, QThread
 from PyQt5.QtGui import QColor
+from PyQt5.QtWidgets import QTableWidgetItem
 from easygui import *
 import os
 
@@ -54,6 +55,8 @@ class Win(QtWidgets.QMainWindow, Ui_MainWindow):
 		self.toolButton_2.menu().triggered.connect(self.change_percentage)
 		self.pushButton_5.clicked.connect(self.click_train)
 		self.pushButton_6.clicked.connect(self.click_unload)
+		header = self.tableWidget.horizontalHeader()
+		header.setSectionResizeMode(2, QtWidgets.QHeaderView.ResizeToContents)
 
 	# Checks if a model with name exists
 	def __model_exist(self, name):
@@ -64,6 +67,11 @@ class Win(QtWidgets.QMainWindow, Ui_MainWindow):
 
 	# New Button Function
 	def click_new(self):
+		w = Worker("new", self.lineEdit.displayText())
+		w.signals.finished_new.connect(self.set_table)
+		self.threads.start(w)
+
+		'''
 		if(self.lineEdit.displayText() != "" and loaded_dataset != ""):
 			if(not self.__model_exist(self.lineEdit.displayText())):
 				if(os.name == 'nt'):
@@ -88,6 +96,24 @@ class Win(QtWidgets.QMainWindow, Ui_MainWindow):
 				self.tableWidget.setItem(self.tableWidget.rowCount()-1,1, item2)
 				self.tableWidget.setItem(self.tableWidget.rowCount()-1,2, item3)
 				self.model_selection_trigger(item.text())
+		'''
+
+	# Sets an item in QTableWidget
+	def set_table(self, item1, item2, item3):
+		self.update_text_browser()
+		self.reset_spinboxes()
+		item1 = QTableWidgetItem(item1)
+		item2 = QTableWidgetItem(item2)
+		item3 = QTableWidgetItem(item3)
+		if(item3.text() == "Not Ready"):
+			item3.setForeground(QColor(255,0,0))
+		else:
+			item3.setForeground(QColor(0,255,0))
+
+		self.tableWidget.setRowCount(self.tableWidget.rowCount()+1)
+		self.tableWidget.setItem(self.tableWidget.rowCount()-1,0, item1)
+		self.tableWidget.setItem(self.tableWidget.rowCount()-1,1, item2)
+		self.tableWidget.setItem(self.tableWidget.rowCount()-1,2, item3)
 
 	# New function tool button
 	def click_tool(self):
@@ -225,7 +251,7 @@ class Win(QtWidgets.QMainWindow, Ui_MainWindow):
 
 	# Train button click
 	def click_train(self):
-		# Cancel operation implementation
+		# Cancel operation
 		if(Worker.thread_control.get(currently_selected_model, False) != False):
 			Worker.thread_control.pop(currently_selected_model)
 			self.toggle_train_tag()
@@ -235,7 +261,7 @@ class Win(QtWidgets.QMainWindow, Ui_MainWindow):
 			w = Worker("train", int(self.spinBox.text()), int(self.toolButton_2.text()[:-1])/100, self.radioButton.isChecked())
 			w.signals.update_info.connect(self.update_text_browser)
 			w.signals.update_list.connect(self.training_update)
-			w.signals.finished_training.connect(self.update_model_status)
+			w.signals.finished_training.connect(self.toggle_train_tag)
 			Worker.thread_control[currently_selected_model] = True
 			self.toggle_train_tag()
 			self.threads.start(w)
@@ -313,8 +339,32 @@ class Worker(QRunnable):
 		self.signals = Signals()
 
 	def run(self):
-		if(self.function == "train"):
-			global currently_selected_model
+		global currently_selected_model
+
+		if(self.function == "new"):
+			displayname = self.args[0]
+
+			if(displayname != "" and loaded_dataset != ""):
+				if(Model.models.get(displayname, False) == False):
+					if(os.name == 'nt'):
+						data_name = loaded_dataset.split("\\")[-1]
+					else:
+						data_name = loaded_dataset.split("/")[-1]	
+
+					Model(displayname, loaded_dataset)
+
+					item = displayname
+					item2 = data_name
+
+					if(Model.models[displayname].binary_feature_space and Model.models[displayname].binary_target_space):
+						item3 = "Ready"
+					else:
+						item3 = "Not Ready"
+
+					currently_selected_model = displayname
+					self.signals.finished_new.emit(item, item2, item3)
+
+		elif(self.function == "train"):
 
 			if(currently_selected_model != ""):
 				md = currently_selected_model
@@ -343,6 +393,8 @@ class Worker(QRunnable):
 
 			self.signals.finished_training.emit(md)	
 
+		del(self)
+
 '''
 
 Worker Signals class for inter-threading communication
@@ -350,9 +402,12 @@ Worker Signals class for inter-threading communication
 '''
 
 class Signals(QObject):
+	# Train operation
 	update_info = pyqtSignal()
 	update_list = pyqtSignal(str, str)
 	finished_training = pyqtSignal(str)
+	# New operation
+	finished_new = pyqtSignal(str,str,str)
 
 # Warning messages suppressor
 def handler(msg_type, msg_log_context, msg_string):
