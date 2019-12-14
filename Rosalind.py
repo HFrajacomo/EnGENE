@@ -67,6 +67,7 @@ class Win(QtWidgets.QMainWindow, Ui_MainWindow):
 		self.toolButton_2.menu().triggered.connect(self.change_percentage)
 		self.pushButton_5.clicked.connect(self.click_train)
 		self.pushButton_6.clicked.connect(self.click_unload)
+		self.pushButton_9.clicked.connect(lambda: self.click_delete(self.tableWidget_2.selectedItems()))
 		self.pushButton_10.clicked.connect(lambda: self.click_cross(self.tableWidget_2.selectedItems()))
 		header = self.tableWidget.horizontalHeader()
 		header.setSectionResizeMode(2, QtWidgets.QHeaderView.ResizeToContents)
@@ -387,7 +388,10 @@ class Win(QtWidgets.QMainWindow, Ui_MainWindow):
 			return
 
 		if(not SIGNAL):
-			res = Result.results[res[-5].text()].data
+			try:
+				res = Result.results[res[-5].text()].data
+			except KeyError:
+				return
 		else:
 			self.add_result(res, Result.results[res].other_models)
 			res = Result.results[res].data
@@ -406,6 +410,28 @@ class Win(QtWidgets.QMainWindow, Ui_MainWindow):
 		w = Worker("cross", selected)
 		w.signals.finished_cross.connect(self.fill_results)
 		self.threads.start(w)
+
+	# Deletes all selected results
+	def click_delete(self, selected):
+		if(selected == []):
+			return
+
+		delete_list = []
+
+		names = [x.text() for x in selected[::5]]
+		for n in names:
+			Result.results[n].pop()
+
+		for i in range(self.tableWidget_2.rowCount()):
+			if(self.tableWidget_2.item(i,0).text() in names):
+				delete_list.append(i)
+
+		delete_list = sorted(delete_list)
+
+		for ind in delete_list:
+			self.tableWidget_2.removeRow(ind)
+			for i in range(len(delete_list)):
+				delete_list[i] -= 1	
 
 '''
 
