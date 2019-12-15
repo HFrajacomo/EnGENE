@@ -34,6 +34,8 @@ class Win(QtWidgets.QMainWindow, Ui_MainWindow):
 
 	# Setup GUI-Python integration
 	def setup_pywin(self):
+		self.setStyleSheet("QMainWindow {background-image: url(:/Images/Images/background.png); background-repeat: no-repeat; background-position: center;}")
+
 		self.pushButton.clicked.connect(self.click_new)
 		self.toolButton.clicked.connect(self.click_tool)
 		self.tableWidget.setRowCount(0)
