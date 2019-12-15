@@ -67,8 +67,10 @@ class Win(QtWidgets.QMainWindow, Ui_MainWindow):
 		self.toolButton_2.menu().triggered.connect(self.change_percentage)
 		self.pushButton_5.clicked.connect(self.click_train)
 		self.pushButton_6.clicked.connect(self.click_unload)
+		self.pushButton_8.clicked.connect(lambda: self.click_cross_model(self.tableWidget.selectedItems()))
 		self.pushButton_9.clicked.connect(lambda: self.click_delete(self.tableWidget_2.selectedItems()))
 		self.pushButton_10.clicked.connect(lambda: self.click_cross(self.tableWidget_2.selectedItems()))
+		self.pushButton_11.clicked.connect(lambda: self.click_save(self.tableWidget_2.selectedItems()))
 		header = self.tableWidget.horizontalHeader()
 		header.setSectionResizeMode(2, QtWidgets.QHeaderView.ResizeToContents)
 		header2 = self.tableWidget_2.horizontalHeader()
@@ -372,6 +374,12 @@ class Win(QtWidgets.QMainWindow, Ui_MainWindow):
 
 		return False
 
+	# Checks if a Result exists in Result.results
+	def __vanilla_result_exists(self, name):
+		if(Result.results.get(name, False) != False):
+			return True
+		return False
+
 	# Finds result index in Results List
 	def get_row_result(self, name):
 		for i in range(0, self.tableWidget_2.rowCount()):
@@ -411,6 +419,22 @@ class Win(QtWidgets.QMainWindow, Ui_MainWindow):
 		w.signals.finished_cross.connect(self.fill_results)
 		self.threads.start(w)
 
+	# Cross Model operation click
+	def click_cross_model(self, selected):
+		if(selected == []):
+			return
+
+		aux = [x.text() for x in selected[::3]]
+
+		for model in aux:
+			if(not self.__vanilla_result_exists(model)):
+				return
+
+		w = Worker("cross_models", selected)
+		w.signals.finished_cross.connect(self.fill_results)
+		self.threads.start(w)
+		self.tabWidget.setCurrentIndex(1)
+
 	# Deletes all selected results
 	def click_delete(self, selected):
 		if(selected == []):
@@ -432,6 +456,15 @@ class Win(QtWidgets.QMainWindow, Ui_MainWindow):
 			self.tableWidget_2.removeRow(ind)
 			for i in range(len(delete_list)):
 				delete_list[i] -= 1	
+
+	# Saves result to a .csv file
+	def click_save(self, selected):
+		if(selected == []):
+			return
+
+		selected = selected[-5].text()
+		Result.results[selected].save()
+
 
 '''
 
@@ -491,7 +524,7 @@ class Worker(QRunnable):
 						if(currently_selected_model == md):
 							self.signals.update_info.emit()
 
-						self.signals.update_list.emit(md, str(i) + "/" + str(iterations))
+						self.signals.update_list.emit(md, str(i+1) + "/" + str(iterations))
 
 						# Stop proccess
 						if(Worker.thread_control.get(md, False) == False):
@@ -523,6 +556,12 @@ class Worker(QRunnable):
 			r = Result.results[all_data[0]]
 			r = r.cross_check_models(all_data)
 			self.signals.finished_cross.emit(r.modelname, True)
+
+		elif(self.function == "cross_models"):
+			all_data = [x.text() for x in self.args[0][::3]]
+			r = Result.results[all_data[0]]
+			r = r.cross_check_models(all_data)
+			self.signals.finished_cross.emit(r.modelname, True)			
 
 		del(self)
 

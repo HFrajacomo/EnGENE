@@ -1,3 +1,5 @@
+from easygui import *
+
 class Result:
 	results = {}
 
@@ -49,3 +51,17 @@ class Result:
 	# Applies gain multiplier to all scores
 	def  __calculate_cross_check_multiplier(self, scorelist):
 		return sorted([[x[0], x[1]*x[2]] for x in scorelist], key=lambda x:x[1], reverse=True)
+
+
+	# Saves data to .csv
+	def save(self):
+		filepath = filesavebox(title="Save Result")
+		filepath = filepath.split(".")[0]
+		file = open(filepath + ".csv", "w")
+
+		file.write("SNP ID,Score\n")
+
+		for element in self.data:
+			file.write(f'{element[0]},{element[1]}\n')
+
+		file.close()
