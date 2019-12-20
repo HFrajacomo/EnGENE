@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 __author__ = "Henrique Frajacomo"
 
 import sys
@@ -74,10 +76,12 @@ class Win(QtWidgets.QMainWindow, Ui_MainWindow):
 		self.pushButton_10.clicked.connect(lambda: self.click_cross(self.tableWidget_2.selectedItems()))
 		self.pushButton_11.clicked.connect(lambda: self.click_save(self.tableWidget_2.selectedItems()))
 		header = self.tableWidget.horizontalHeader()
-		header.setSectionResizeMode(2, QtWidgets.QHeaderView.ResizeToContents)
+		header.setSectionResizeMode(1, QtWidgets.QHeaderView.Stretch)
+		header.setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeToContents)
 		header2 = self.tableWidget_2.horizontalHeader()
 		header2.setSectionResizeMode(2, QtWidgets.QHeaderView.Stretch)
 		header3 = self.tableWidget_3.horizontalHeader()
+		header3.setSectionResizeMode(0, QtWidgets.QHeaderView.Stretch)
 		header3.setSectionResizeMode(1, QtWidgets.QHeaderView.Stretch)
 
 	# Checks if a model with name exists
@@ -109,6 +113,7 @@ class Win(QtWidgets.QMainWindow, Ui_MainWindow):
 		self.tableWidget.setItem(self.tableWidget.rowCount()-1,0, item1)
 		self.tableWidget.setItem(self.tableWidget.rowCount()-1,1, item2)
 		self.tableWidget.setItem(self.tableWidget.rowCount()-1,2, item3)
+		self.tableWidget.resizeRowsToContents()
 
 	# New function tool button
 	def click_tool(self):
