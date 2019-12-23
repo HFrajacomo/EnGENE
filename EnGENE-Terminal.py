@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 __author__ = "Henrique Frajacomo"
 
 import sys
