@@ -1,5 +1,3 @@
-Genex
-
 # EnGENE
 
 EnGENE is an AI powered Genetic Enhancement Engine for biologists and data scientists.
