@@ -630,8 +630,9 @@ Model.GUI = True
 if __name__ == "__main__":
 	import sys
 	app = QtWidgets.QApplication(sys.argv)
-	myappid = 'Biomal.EnGENE.Rosalind.1.0' # arbitrary string
-	ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+	if(os.name == 'nt'):
+		myappid = 'Biomal.EnGENE.Rosalind.1.0'
+		ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 	ui = Win()
 	ui.show()
 	sys.exit(app.exec_() )
