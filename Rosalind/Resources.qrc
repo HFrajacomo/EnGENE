@@ -1,8 +1,8 @@
 <RCC>
   <qresource prefix="Images">
+    <file>Images/Save_button.png</file>
     <file>Images/EnGENE 64 x 64.png</file>
     <file>Images/EnGENE 512 x 512.png</file>
-    <file>Images/Save_button.png</file>
     <file>Images/Add_button.png</file>
     <file>Images/Cross_button.png</file>
     <file>Images/background.png</file>

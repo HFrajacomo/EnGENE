@@ -6,7 +6,7 @@ import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QThreadPool, QRunnable, pyqtSignal, pyqtSlot, QObject, QThread
 from PyQt5.QtGui import QColor
-from PyQt5.QtWidgets import QTableWidgetItem
+from PyQt5.QtWidgets import QTableWidgetItem, QMessageBox
 from easygui import *
 import os
 
@@ -18,6 +18,19 @@ sys.path.append('Rosalind/')
 from EnGENE import Model
 from Window import Ui_MainWindow
 from Result import Result
+
+
+# Stdout Supression
+'''
+The following block of code removes all traces of warnings and errors
+from stdout and voids them.
+UNCOMMENT ONLY WHEN FULL RELEASE IS READY!
+'''
+sys.stderr = open(os.devnull, "w")
+sys.stdout = open(os.devnull, "w")
+
+#####
+
 
 # Warning Supress function
 def warn(*args, **kwargs):
@@ -472,6 +485,21 @@ class Win(QtWidgets.QMainWindow, Ui_MainWindow):
 		selected = selected[-5].text()
 		Result.results[selected].save()
 
+	# Shows an error message when something goes wrong
+	# DISABLE THIS WHEN DEBUGGING OR TESTING
+	def master_error_popup(self):
+		error = QMessageBox()
+		error.setWindowTitle("Error")
+		error.setText("An unexpected error has ocurred.\nPlease restart the program.")
+		error.setIcon(QMessageBox.Warning)
+		error.setStandardButton(QMessageBox.Ok)
+		error.buttonClicked.connect(self.master_exit)
+
+		x = msg.exec_()
+
+	# Quits the program when master_error_popup happens
+	def master_exit(self):
+		exit()
 
 '''
 
@@ -590,13 +618,6 @@ class Signals(QObject):
 	# Cross operation
 	finished_cross = pyqtSignal(str, bool)
 
-# Warning messages suppressor
-def handler(msg_type, msg_log_context, msg_string):
-    if(msg_type == 1):
-    	pass
-    else:
-    	print(msg_string)
-
 
 loaded_dataset = ""
 version = "v1.0"
@@ -610,4 +631,4 @@ if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     ui = Win()
     ui.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec_() )

@@ -8,10 +8,11 @@ out = proc.communicate()[0]
 if(len(out.split("python"))>1):
 	# Python3 installed as default
 	if(out.split("python ")[1][0] == "3"):
-		os.system("pip install colorama")
+		os.system("pip install PyQt5")
 		os.system("pip install numpy")
 		os.system("pip install sklearn")
 		os.system("pip install pandas")
+		os.system("pip install easygui")
 
 	# Python2 installed as default
 	else:
@@ -19,7 +20,8 @@ if(len(out.split("python"))>1):
 		out = proc.communicate()[0]
 		# Python3 is installed too
 		if(len(out.split("python"))>1):
-			os.system("pip3 install colorama")
+			os.system("pip3 install PyQt5")
+			os.system("pip3 install easygui")
 			os.system("pip3 install numpy")
 			os.system("pip3 install sklearn")
 			os.system("pip3 install pandas")
