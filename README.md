@@ -44,7 +44,9 @@ EnGENE can be used through the a terminal interface (EnGENE-Terminal) or Rosalin
 ### Linux
 
  1. Getting EnGENE:
+	
 	> git clone https://github.com/HFrajacomo/EnGENE
+	
 	> cd EnGENE
 	
 2. Installing EnGENE dependencies:
