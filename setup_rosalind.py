@@ -3,8 +3,15 @@
 import os
 import subprocess as sp
 
-proc = sp.Popen(["powershell.exe", "pip -V"], stdout=sp.PIPE, shell=True, universal_newlines=True)
-out = proc.communicate()[0]
+# If Windows
+if(os.name == 'nt'):
+	proc = sp.Popen(["powershell.exe", "pip -V"], stdout=sp.PIPE, shell=True, universal_newlines=True)
+	out = proc.communicate()[0]
+
+# If Linux or Mac
+else:
+	proc = sp.Popen(["pip -V"], stdout=sp.PIPE, shell=True, universal_newlines=True)
+	out = proc.communicate()[0]
 
 # Python is installed
 if(len(out.split("python"))>1):
