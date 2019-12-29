@@ -60,6 +60,7 @@ EnGENE can be used through the a terminal interface (EnGENE-Terminal) or Rosalin
 3. Running EnGENE can be done by:
 
 > ./EnGENE-Terminal.py
+
 > ./Rosalind.pyw
 
 
