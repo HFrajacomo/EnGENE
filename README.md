@@ -21,7 +21,7 @@ EnGENE can be used through the a terminal interface (EnGENE-Terminal) or Rosalin
  1. Download the latest version of Python3 [here](https://www.python.org/downloads/)
  2. Download EnGENE. It can either be downloaded straight from Github or can be cloned directly into your computer if Git is installed.
 
-	> git clone https://github.com/HFrajacomo/EnGENE/tree/EnGENE-1.0
+	> git clone https://github.com/HFrajacomo/EnGENE --branch EnGENE-1.0
 
  3. Open a cmd or powershell in the EnGENE directory and run the setup files:
 
@@ -43,7 +43,7 @@ EnGENE can be used through the a terminal interface (EnGENE-Terminal) or Rosalin
 
  1. Getting EnGENE:
 	
-	> git clone https://github.com/HFrajacomo/EnGENE/tree/EnGENE-1.0
+	> git clone https://github.com/HFrajacomo/EnGENE --branch EnGENE-1.0
 	
 	> cd EnGENE
 	
