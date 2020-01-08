@@ -20,6 +20,7 @@ if(len(out.split("python"))>1):
 		os.system("pip install colorama")
 		os.system("pip install numpy")
 		os.system("pip install sklearn")
+		os.system("pip install scikit-learn")
 		os.system("pip install pandas")
 
 	# Python2 installed as default
@@ -31,6 +32,7 @@ if(len(out.split("python"))>1):
 			os.system("pip3 install colorama")
 			os.system("pip3 install numpy")
 			os.system("pip3 install sklearn")
+			os.system("pip install scikit-learn")
 			os.system("pip3 install pandas")
 		else:
 			print("Only Python2 is installed. Make sure to install Python3's latest version!")
