@@ -4,7 +4,7 @@ EnGENE is an AI powered Genetic Enhancement Engine for biologists and data scien
 
 ### A brief biology background
 
-Genetics is an area of biology that studies DNA and genomics. A DNA is (in real life) two string of data that describes an organism. While it's imaginable that the DNA of a human and a grain of rice is different, the examples given here are specific to a single organism... so let's focus on humans!
+Genetics is an area of biology concerned with the study of genes, genetic variations and heredity. A DNA is (in real life) a molecule composed of two chains of data that describes an organism. While it's imaginable that the DNA of a human and a grain of rice is different, the examples given here are specific to a single organism... so let's focus on humans!
 
 As humans, we have our differences, even though we share the same DNA structure. So what makes us different? The answer is simple: DNA. It sounds quite complicated, but let me clear things our for you: 99% of our DNA is what makes us human, the other 1% is what makes us... us. That 1% DNA data is what we call **Single Nucleotide Polymorphisms (SNPs)**.
 
