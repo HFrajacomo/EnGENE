@@ -14,7 +14,7 @@ In Genetic Enhancement, the main goal of the researchers is to find the SNPs tha
 
 ## Installation
 
-EnGENE can be used through the a terminal interface (EnGENE-Terminal) or Rosalind GUI. Both of them run on **Python3**. The installation can be done by following a few steps:
+EnGENE can be used through a terminal interface (EnGENE-Terminal) or Rosalind GUI. Both of them run on **Python3**. The installation can be done by following a few steps:
 
 ### Windows
 
