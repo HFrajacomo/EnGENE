@@ -6,15 +6,15 @@ EnGENE is an AI powered Genetic Enhancement Engine for biologists and data scien
 
 Genetics is an area of biology concerned with the study of genes, genetic variations and heredity. A DNA is (in real life) a molecule composed of two chains of data that describes an organism. While it's imaginable that the DNA of a human and a grain of rice is different, the examples given here are specific to a single organism... so let's focus on humans!
 
-As humans, we have our differences, even though we share the same DNA structure. So what makes us different? The answer is simple: DNA. It sounds quite complicated, but let me clear things our for you: 99% of our DNA is what makes us human, the other 1% is what makes us... us. That 1% DNA data is what we call **Single Nucleotide Polymorphisms (SNPs)**.
+As humans, we have our differences, even though we share the same DNA structure. So what makes us different? The answer is simple: DNA. It sounds quite complicated, but let me clear things out for you: 99% of our DNA is what makes us human, the other 1% is what makes us... us. That 1% DNA data is what we call **Single Nucleotide Polymorphisms (SNPs)**.
 
 SNPs are basically a piece of DNA that is interchangeable throughout the species. Those dictate our appearance, bodily processes, tendency to diseases, etc..
 
-In Genetic Enhancement, the main goal of the researchers is to find the SNPs that are related to a certain target characteristic of an organism. As another example, let's say that we want to make a certain crop grow faster. We first have to look at it's SNP string and figure out what SNPs are related to the "grow faster" characteristic. After that, researchers perform experiments to get a genotype that has that SNP set to a value that makes the "grow faster" characteristic more prominent. The problem is that organisms can have thousands and thousands of SNPS. Some easily get to the hundreds of thousands. How do we find one or a few SNPs that are related to our target characteristic? That's what EnGENE is for!
+In Genetic Enhancement, the main goal of the researchers is to find the SNPs that are related to a certain target characteristic of an organism. As another example, let's say that we want to make a certain crop grow faster. We first have to look at it's SNP string and figure out what SNPs are related to the "grow faster" characteristic. After that, researchers perform experiments to get a genotype that has that SNP set to a value that makes the "grow faster" characteristic more prominent. The problem is that organisms can have thousands and thousands of SNPs. Some easily get to the hundreds of thousands. How do we find one or a few SNPs that are related to our target characteristic? That's what EnGENE is for!
 
 ## Installation
 
-EnGENE can be used through the a terminal interface (EnGENE-Terminal) or Rosalind GUI. Both of them run on **Python3**. The installation can be done by following a few steps:
+EnGENE can be used through a terminal interface (EnGENE-Terminal) or Rosalind GUI. Both of them run on **Python3**. The installation can be done by following a few steps:
 
 ### Windows
 
