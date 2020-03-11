@@ -341,7 +341,7 @@ class Model:
 	# Runs Model.holdout() and Model.fit() n times
 	def mass_fit(self, n, train_s=0.9, stratify=True, cpu=-1):
 		for i in range(n):
-			if(Model.verbose or not Model.GUI):
+			if(Model.verbose and not Model.GUI):
 				progress(f'{i}/{n}')
 
 			errcode = self.holdout(train_s=train_s, stratify=stratify)
