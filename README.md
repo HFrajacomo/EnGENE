@@ -43,7 +43,7 @@ EnGENE can be used through a terminal interface (EnGENE-Terminal) or Rosalind GU
 
  1. Getting EnGENE:
 	
-	> git clone https://github.com/HFrajacomo/EnGENE --branch EnGENE-1.0
+	> git clone https://github.com/HFrajacomo/EnGENE
 	
 	> cd EnGENE
 	
