@@ -5,6 +5,7 @@ To get started with EnGENE analysis, all you need to learn is three special comm
 ## Load
 
 Description: Loads and prepares a model based on input dataset and user-given information
+
 Syntax: `Load <name> <filename> <feature_space_start> <feature_space_end> <target_column> <target_class>? &`
 
 *Name*: The name to be given to the new model
@@ -15,6 +16,7 @@ Syntax: `Load <name> <filename> <feature_space_start> <feature_space_end> <targe
 *Target_class*: The specific value of the target column that wants to be discovered (ignore if there are only two classes)
 
 Example 1: `Load test_model models/test.csv 1 10 growth_speed fast &`
+
 Example 2: `Load model_a rice.csv 1 4000 amylosis_content &`
 
 In Example 1, the file **test.csv** contained in the folder **models** has been loaded into the model named **test_model**, using the **SNPs from columns 1 to 10** and setting the **growth_speed** column as the target. Considering this target column is not binary (having values like: fast, medium, slow, very slow, etc.), the **fast** part select the desired label the model will focus on.
@@ -24,12 +26,14 @@ In Example 2, the file **rice.csv** contained in the **same folder as EnGENE-Ter
 ## Train
 
 Description: Trains one or more models the recommended amount of times and calculates their score. If a list of models is given, calculates the cross correlation between the SNPs' scores
+
 Syntax: `Train <modelname or list_of_model_names> &`
 
 *Model_name*: The name assigned to the model that needs training
 *List_of_model_names*: A list of model names between brackets []
 
 Example 1: Train test_model &
+
 Example 2: Train [test_model, test_model2, test_model3] &
 
 In Example 1, the model that was loaded with the name **test_model** will be trained 1000 times.
@@ -37,13 +41,15 @@ In Example 2, all the models inside the brackets will be trained 1000 times each
 
 ## SNP
 Description: Gets a ranked list of snps detected
+
 Syntax: `SNP: <modelname> <n_elements=[all]>`
 
 *Model_name*: The name assigned to the trained model
 *N_elements*: The max number of SNPs, in importance order, that should be printed to the screen. If no value is 	specified, all SNPs are printed
 
-Example 1: SNP rice_model 10
-Example 2: SNP rice_model
+Example 1: `SNP rice_model 10`
+
+Example 2: `SNP rice_model`
 
 In Example 1, a list of **only the top 10 SNPs found in rice_model** is printed, while Example 2 prints all of the SNPs found.
 
