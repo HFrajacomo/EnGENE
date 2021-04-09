@@ -8,12 +8,12 @@ Description: Loads and prepares a model based on input dataset and user-given in
 
 Syntax: `Load <name> <filename> <feature_space_start> <feature_space_end> <target_column> <target_class>? &`
 
-*Name*: The name to be given to the new model
-*Filename*: Path to input dataset
-*Feature_space_start*: An integer that represents the column index of the first SNP. Starts at 0.
-*Feature_space_end*: An integer that represents the column index of the last SNP. Starts at 0.
-*Target_column*: The column name or integer representing the column index of the investigated feature
-*Target_class*: The specific value of the target column that wants to be discovered (ignore if there are only two classes)
+- *Name*: The name to be given to the new model
+- *Filename*: Path to input dataset
+- *Feature_space_start*: An integer that represents the column index of the first SNP. Starts at 0.
+- *Feature_space_end*: An integer that represents the column index of the last SNP. Starts at 0.
+- *Target_column*: The column name or integer representing the column index of the investigated feature
+- *Target_class*: The specific value of the target column that wants to be discovered (ignore if there are only two classes)
 
 Example 1: `Load test_model models/test.csv 1 10 growth_speed fast &`
 
@@ -29,8 +29,8 @@ Description: Trains one or more models the recommended amount of times and calcu
 
 Syntax: `Train <modelname or list_of_model_names> &`
 
-*Model_name*: The name assigned to the model that needs training
-*List_of_model_names*: A list of model names between brackets []
+- *Model_name*: The name assigned to the model that needs training
+- *List_of_model_names*: A list of model names between brackets []
 
 Example 1: Train test_model &
 
@@ -44,8 +44,8 @@ Description: Gets a ranked list of snps detected
 
 Syntax: `SNP: <modelname> <n_elements=[all]>`
 
-*Model_name*: The name assigned to the trained model
-*N_elements*: The max number of SNPs, in importance order, that should be printed to the screen. If no value is 	specified, all SNPs are printed
+- *Model_name*: The name assigned to the trained model
+- *N_elements*: The max number of SNPs, in importance order, that should be printed to the screen. If no value is 	specified, all SNPs are printed
 
 Example 1: `SNP rice_model 10`
 
