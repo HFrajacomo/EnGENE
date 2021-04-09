@@ -32,9 +32,9 @@ Syntax: `Train <modelname or list_of_model_names> &`
 - *Model_name*: The name assigned to the model that needs training
 - *List_of_model_names*: A list of model names between brackets []
 
-Example 1: Train test_model &
+Example 1: `Train test_model &`
 
-Example 2: Train [test_model, test_model2, test_model3] &
+Example 2: `Train [test_model, test_model2, test_model3] &`
 
 In Example 1, the model that was loaded with the name **test_model** will be trained 1000 times.
 In Example 2, all the models inside the brackets will be trained 1000 times each, and will instantly print the resulting SNPs after a cross-correlation was done between all the models. 
