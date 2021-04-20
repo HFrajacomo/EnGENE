@@ -252,10 +252,16 @@ def command_handler(command):
 		
 		elif(command[0].lower() == "train"):
 			if(n_args == 1):
-				function_train(command[1], "1000", THREADED)
+				warning(-9, "Train defaulted n_runs to 1000 and should_save to false")
+				function_train(command[1], "1000", "n", THREADED)
+			elif(n_args == 2 and __isint(command[2])):
+				warning(-9, "Train defaulted should_save to false")
+				function_train(command[1], command[2], "n", THREADED)
+			elif(n_args == 2 and not __isint(command[2])):
 				warning(-9, "Train defaulted n_runs to 1000")
-			elif(n_args == 2):
-				function_train(command[1], command[2], THREADED)
+				function_train(command[1], "1000", command[2], THREADED)
+			elif(n_args == 3):
+				function_train(command[1], command[2], command[3], THREADED)				
 			else:
 				warning(-7, "Syntax: train <modelname|list_of_models> <n_runs=1000>")
 
@@ -332,10 +338,11 @@ def function_help():
 	# Train
 	print(Fore.CYAN + "Train\n")
 	print("Description: Trains one or more models the recommended amount of times and calculates their score. If a list of models is given, calculates the cross correlation between the SNPs' scores")
-	print("Syntax: Train <modelname or list_of_model_names> <number_of_runs=1000>\n")
+	print("Syntax: Train <modelname or list_of_model_names> <number_of_runs=1000> <should_save=n/y>\n")
 	print("Model_name: The name assigned to the model that needs training")
 	print("List_of_model_names: A list of model names between brackets []")
-	print("Number_of_runs: The amount of times EnGENE will fit new models and get new results\n")
+	print("Number_of_runs: The amount of times EnGENE will fit new models and get new results")
+	print("Should_save: If the results should be saved in the Saved_Results folder\n")
 	print("Example: Train test_model")
 	print("Example: Train test_model 10")
 	print("Example: Train [test_model, rice_model_A, rice_model_B]")
@@ -353,6 +360,14 @@ def __format_string(text):
 def __isfloat(text):
 	try:
 		text = float(text)
+		return True
+	except ValueError:
+		return False
+
+# Checks if string can be converted to float
+def __isint(text):
+	try:
+		text = int(text)
 		return True
 	except ValueError:
 		return False
@@ -670,10 +685,15 @@ def function_load(name, filename, start, end, target, target_class, THREADED):
 		Thread(target=function_load, args=(name, filename, start, end, target, target_class, False)).start()					
 
 # Full-on training and results calculation for models
-def function_train(model, n_runs, THREADED):
+def function_train(model, n_runs, should_save, THREADED):
 	runs = int(n_runs)
 
 	if(not THREADED):
+		if(should_save.lower() == "y"):
+			should_save = True
+		else:
+			should_save = False
+
 		if(model.count("[") > 0):
 			model = model.replace("[", "").replace("]", "").split(",")
 			threads = []
@@ -697,6 +717,9 @@ def function_train(model, n_runs, THREADED):
 			for element in scores:
 				print('{:<15}'.format(element[0] + ": ") + '{:>10}'.format('{0:.3f}'.format(element[1])))
 	
+			if(should_save):
+				save_results("_".join(model), scores)
+
 		else:
 			if(not __model_exist(model)):
 				warning(-2, f"Model {model} not found")
@@ -713,8 +736,30 @@ def function_train(model, n_runs, THREADED):
 			for element in Model.models[model].get_top_snps():
 				print('{:<15}'.format(element[0] + ": ") + '{:>5}'.format('{0:.3f}'.format(element[1])))
 
+			if(should_save):
+				save_results(model, Model.models[model].get_top_snps())
+
 	else:
-		Thread(target=function_train, args=(model, n_runs, False)).start()					
+		Thread(target=function_train, args=(model, n_runs, should_save, False)).start()					
+
+
+# Saves Train results to a file
+def save_results(modelname, scores):
+	# Creates save dir
+	if(os.name == 'nt' and not os.path.isdir("Saved_Results")):
+		os.system("mkdir Saved_Results")
+	elif(os.name != 'nt' and not os.path.isdir("Saved_Results")):
+		os.system("mkdir Saved_Results")
+
+	if(os.name == 'nt'):
+		file = open("Saved_Results\\" + modelname + "_results.txt", "w")
+	else:
+		file = open("Saved_Results/" + modelname + "_results.txt", "w")
+
+	for element in scores:
+		file.write(str(element[0]) + "\t" + str(element[1]) + "\n")
+
+	file.close()
 
 
 # Welcome Message
@@ -731,7 +776,7 @@ import warnings
 warnings.warn = warn
 
 
-version = "v1.0"
+version = "v1.0.1"
 verbose = True
 
 '''

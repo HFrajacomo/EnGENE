@@ -5,6 +5,7 @@ To get started with EnGENE analysis, all you need to learn is three special comm
 ## Load
 
 Description: Loads and prepares a model based on input dataset and user-given information
+
 Syntax: `Load <name> <filename> <feature_space_start> <feature_space_end> <target_column> <target_class>? &`
 
 *Name*: The name to be given to the new model
@@ -24,20 +25,24 @@ In Example 2, the file **rice.csv** contained in the **same folder as EnGENE-Ter
 ## Train
 
 Description: Trains one or more models the recommended amount of times and calculates their score. If a list of models is given, calculates the cross correlation between the SNPs' scores
-Syntax: `Train <modelname or list_of_model_names> <n_runs=1000> &`
+Syntax: `Train <modelname or list_of_model_names> <n_runs=1000> <should_save=n/y> &`
 
 *Model_name*: The name assigned to the model that needs training
 *List_of_model_names*: A list of model names between brackets []
 *n_runs*: Number of times EnGENE will fit a model and gather it's results
+*should_save*: Whether the results should be saved to the Saved_Results folder. Defaults to no.
 
 Example 1: Train test_model &
 Example 2: Train [test_model, test_model2, test_model3] &
 Example 3: Train test_model 10 &
 Example 4: Train [test1, test2] 10 &
+Example 5: Train test_model y &
+Example 6: Train test_model 10 y &
 
 In Example 1, the model that was loaded with the name **test_model** will be trained 1000 times.
 In Example 2, all the models inside the brackets will be trained 1000 times each, and will instantly print the resulting SNPs after a cross-correlation was done between all the models. 
 Examples 3 and 4 are analogous to 1 and 2, but the amount of training runs will be 10, and not 1000.
+Examples 5 and 6 will train test_model for 1000 and 10 runs respectively, and both will save the results to a file.
 
 ## SNP
 Description: Gets a ranked list of snps detected

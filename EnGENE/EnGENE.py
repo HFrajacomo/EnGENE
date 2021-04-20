@@ -4,6 +4,7 @@ Everything related to data and learning is in here
 '''
 
 import pandas as pd
+import random as rd
 import numpy as np
 from datetime import datetime
 from ErrorHandling import *
@@ -261,11 +262,13 @@ class Model:
 			if(not self.GUI):
 				warning(2, "No data to fit. Use Model.holdout() before fitting data")
 
-		# 10 + SNP%20 trees in the forest
-		n_trees = (self.feature_range[1] - self.feature_range[0] + 1)%20 + 10
+		# 10 + SNP%100 trees in the forest
+		#n_trees = (self.feature_range[1] - self.feature_range[0] + 1)%20 + 10
+		n_trees = int((self.feature_range[1] - self.feature_range[0] + 1)/100) + 10
+
 
 		self.IS_TRAINING = True
-		self.classifier = RandomForestClassifier(n_estimators=n_trees, n_jobs=cpu)
+		self.classifier = RandomForestClassifier(n_estimators=n_trees, n_jobs=cpu, random_state=int(rd.random()*1000000))
 		
 		# Fix for empty list pop inside sklearn
 		while(True):
