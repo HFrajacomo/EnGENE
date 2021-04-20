@@ -29,7 +29,7 @@ Syntax: `Train <modelname or list_of_model_names> <n_runs=1000> <should_save=n/y
 
 *Model_name*: The name assigned to the model that needs training  
 *List_of_model_names*: A list of model names between brackets []  
-*n_runs*: Number of times EnGENE will fit a model and gather it's results
+*n_runs*: Number of times EnGENE will fit a model and gather it's results  
 *should_save*: Whether the results should be saved to the Saved_Results folder. Defaults to no.
 
 Example 1: `Train test_model &`  
