@@ -24,8 +24,7 @@ In Example 2, the file **rice.csv** contained in the **same folder as EnGENE-Ter
 
 ## Train
 
-<<<<<<< HEAD
-Description: Trains one or more models the recommended amount of times and calculates their score. If a list of models is given, calculates the cross correlation between the SNPs' scores
+Description: Trains one or more models the recommended amount of times and calculates their score. If a list of models is given, calculates the cross correlation between the SNPs' scores  
 Syntax: `Train <modelname or list_of_model_names> <n_runs=1000> <should_save=n/y> &`
 
 *Model_name*: The name assigned to the model that needs training  
