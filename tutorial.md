@@ -32,12 +32,12 @@ Syntax: `Train <modelname or list_of_model_names> <n_runs=1000> <should_save=n/y
 *n_runs*: Number of times EnGENE will fit a model and gather it's results
 *should_save*: Whether the results should be saved to the Saved_Results folder. Defaults to no.
 
-Example 1: Train test_model &  
-Example 2: Train [test_model, test_model2, test_model3] &  
-Example 3: Train test_model 10 &  
-Example 4: Train [test1, test2] 10 &  
-Example 5: Train test_model y &  
-Example 6: Train test_model 10 y &
+Example 1: `Train test_model &`  
+Example 2: `Train [test_model, test_model2, test_model3] &`  
+Example 3: `Train test_model 10 &`  
+Example 4: `Train [test1, test2] 10 &`  
+Example 5: `Train test_model y &`  
+Example 6: `Train test_model 10 y &`
 
 In Example 1, the model that was loaded with the name **test_model** will be trained 1000 times.  
 In Example 2, all the models inside the brackets will be trained 1000 times each, and will instantly print the resulting SNPs after a cross-correlation was done between all the models.   
