@@ -252,9 +252,12 @@ def command_handler(command):
 		
 		elif(command[0].lower() == "train"):
 			if(n_args == 1):
-				function_train(command[1], THREADED)
+				function_train(command[1], "1000", THREADED)
+				warning(-9, "Train defaulted n_runs to 1000")
+			elif(n_args == 2):
+				function_train(command[1], command[2], THREADED)
 			else:
-				warning(-7, "Syntax: train <modelname|list_of_models>")
+				warning(-7, "Syntax: train <modelname|list_of_models> <n_runs=1000>")
 
 		else:
 			warning(-6, f"Command {command[0]} not found")
@@ -329,10 +332,12 @@ def function_help():
 	# Train
 	print(Fore.CYAN + "Train\n")
 	print("Description: Trains one or more models the recommended amount of times and calculates their score. If a list of models is given, calculates the cross correlation between the SNPs' scores")
-	print("Syntax: Train <modelname or list_of_model_names>\n")
+	print("Syntax: Train <modelname or list_of_model_names> <number_of_runs=1000>\n")
 	print("Model_name: The name assigned to the model that needs training")
-	print("List_of_model_names: A list of model names between brackets []\n")
+	print("List_of_model_names: A list of model names between brackets []")
+	print("Number_of_runs: The amount of times EnGENE will fit new models and get new results\n")
 	print("Example: Train test_model")
+	print("Example: Train test_model 10")
 	print("Example: Train [test_model, rice_model_A, rice_model_B]")
 
 # Formats to table view
@@ -665,7 +670,9 @@ def function_load(name, filename, start, end, target, target_class, THREADED):
 		Thread(target=function_load, args=(name, filename, start, end, target, target_class, False)).start()					
 
 # Full-on training and results calculation for models
-def function_train(model, THREADED):
+def function_train(model, n_runs, THREADED):
+	runs = int(n_runs)
+
 	if(not THREADED):
 		if(model.count("[") > 0):
 			model = model.replace("[", "").replace("]", "").split(",")
@@ -677,7 +684,7 @@ def function_train(model, THREADED):
 					return
 					
 			for mod in model:
-				threads.append(Thread(target=Model.models[mod].mass_fit, args=(1000,)))
+				threads.append(Thread(target=Model.models[mod].mass_fit, args=(runs,)))
 				threads[-1].start()
 
 			for th in threads:
@@ -695,7 +702,7 @@ def function_train(model, THREADED):
 				warning(-2, f"Model {model} not found")
 				return
 
-			Model.models[model].mass_fit(1000)
+			Model.models[model].mass_fit(runs)
 			print(f'Mean Precision: {Model.models[model].get_mean_precision()}')
 			print(f'Mean Recall: {Model.models[model].get_mean_recall()}')
 			Model.models[model].calculate_top_snps()
@@ -707,7 +714,7 @@ def function_train(model, THREADED):
 				print('{:<15}'.format(element[0] + ": ") + '{:>5}'.format('{0:.3f}'.format(element[1])))
 
 	else:
-		Thread(target=function_train, args=(model, False)).start()					
+		Thread(target=function_train, args=(model, n_runs, False)).start()					
 
 
 # Welcome Message
